@@ -6,7 +6,7 @@ namespace Routed.Layer
 {
 	public class BaseComponent
 	{
-		public Cable Parent;
+		public Duct Parent;
 
 		public virtual void Draw(SpriteBatch spriteBatch)
 		{

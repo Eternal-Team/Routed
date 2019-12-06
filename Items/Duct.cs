@@ -4,13 +4,13 @@ using Terraria.ModLoader;
 
 namespace Routed.Items
 {
-	public class Cable : BaseLayerItem
+	public class Duct : BaseLayerItem
 	{
 		public override IModLayer Layer => ModContent.GetInstance<Routed>().RoutedLayer;
 
 		public override void SetStaticDefaults()
 		{
-			DisplayName.SetDefault("Cable");
+			DisplayName.SetDefault("Duct");
 		}
 	}
 }

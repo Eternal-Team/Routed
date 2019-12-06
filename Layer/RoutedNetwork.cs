@@ -7,16 +7,16 @@ namespace Routed.Layer
 	{
 		public static List<RoutedNetwork> Networks = new List<RoutedNetwork>();
 
-		public List<Cable> Tiles { get; }
+		public List<Duct> Tiles { get; }
 
-		public RoutedNetwork(Cable tube)
+		public RoutedNetwork(Duct duct)
 		{
 			Networks.Add(this);
 
-			Tiles = new List<Cable> { tube };
+			Tiles = new List<Duct> { duct };
 		}
 
-		public void AddTile(Cable tile)
+		public void AddTile(Duct tile)
 		{
 			if (!Tiles.Contains(tile))
 			{
@@ -26,7 +26,7 @@ namespace Routed.Layer
 			}
 		}
 
-		public void RemoveTile(Cable tile)
+		public void RemoveTile(Duct tile)
 		{
 			if (Tiles.Contains(tile))
 			{

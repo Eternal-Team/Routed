@@ -6,7 +6,7 @@ using Terraria.ModLoader.IO;
 
 namespace Routed.Layer
 {
-	public class RoutedLayer : ModLayer<Cable>
+	public class RoutedLayer : ModLayer<Duct>
 	{
 		public override int TileSize => 1;
 
@@ -14,14 +14,14 @@ namespace Routed.Layer
 		{
 			base.Load(list);
 
-			foreach (Cable tube in data.Values) tube.Merge();
+			foreach (Duct duct in data.Values) duct.Merge();
 		}
 
 		public bool PlaceComponent<T>(BaseComponentItem<T> item) where T : BaseComponent, new()
 		{
-			if (TryGetValue(Player.tileTargetX, Player.tileTargetY, out Cable cable) && cable.Component == null)
+			if (TryGetValue(Player.tileTargetX, Player.tileTargetY, out Duct duct) && duct.Component == null)
 			{
-				cable.Component = new T { Parent = cable };
+				duct.Component = new T { Parent = duct };
 				return true;
 			}
 
@@ -33,10 +33,10 @@ namespace Routed.Layer
 			int posX = Player.tileTargetX;
 			int posY = Player.tileTargetY;
 
-			if (TryGetValue(posX, posY, out Cable cable) && cable.Component != null)
+			if (TryGetValue(posX, posY, out Duct duct) && duct.Component != null)
 			{
-				//Item.NewItem(posX * 16, posY * 16, 16, 16, cable.Component.DropItem);
-				cable.Component = null;
+				//Item.NewItem(posX * 16, posY * 16, 16, 16, duct.Component.DropItem);
+				duct.Component = null;
 			}
 		}
 

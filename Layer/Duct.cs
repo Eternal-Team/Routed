@@ -10,11 +10,11 @@ using Terraria.ModLoader.IO;
 
 namespace Routed.Layer
 {
-	public class Cable : ModLayerElement<Cable>
+	public class Duct : ModLayerElement<Duct>
 	{
-		public override string Texture => "Routed/Textures/Cable";
+		public override string Texture => "";
 
-		public override int DropItem => ModContent.ItemType<Items.Cable>();
+		public override int DropItem => ModContent.ItemType<Items.Duct>();
 
 		#region Static
 		private static Texture2D textureNormal;
@@ -26,7 +26,7 @@ namespace Routed.Layer
 
 		private const string TextureLocation = "Routed/Textures/Duct/";
 
-		static Cable()
+		static Duct()
 		{
 			textureNormal = ModContent.GetTexture(TextureLocation + "Normal");
 			textureDiagonal = ModContent.GetTexture(TextureLocation + "Diagonal");
@@ -40,7 +40,7 @@ namespace Routed.Layer
 		public RoutedNetwork Network;
 		public BaseComponent Component;
 
-		public Cable()
+		public Duct()
 		{
 			Network = new RoutedNetwork(this);
 		}
@@ -57,10 +57,10 @@ namespace Routed.Layer
 
 		public void Merge()
 		{
-			foreach (Cable tube in GetNeighbors()) tube.Network.Merge(Network);
+			foreach (Duct duct in GetNeighbors()) duct.Network.Merge(Network);
 		}
 
-		public override IEnumerable<Cable> GetNeighbors()
+		public override IEnumerable<Duct> GetNeighbors()
 		{
 			if (Layer.ContainsKey(Position.X + 1, Position.Y)) yield return Layer[Position.X + 1, Position.Y];
 			if (Layer.ContainsKey(Position.X - 1, Position.Y)) yield return Layer[Position.X - 1, Position.Y];
