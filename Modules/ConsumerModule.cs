@@ -29,7 +29,7 @@ namespace Routed.Modules
 		{
 			spriteBatch.Draw(Main.magicPixel, new Rectangle((int)(Parent.Position.X * 16 - Main.screenPosition.X), (int)(Parent.Position.Y * 16 - Main.screenPosition.Y), 16, 16), Color.Orange * 0.5f);
 		}
-		
+
 		public override bool Interact()
 		{
 			BaseLibrary.BaseLibrary.PanelGUI.UI.HandleUI(this);

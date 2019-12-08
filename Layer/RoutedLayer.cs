@@ -17,6 +17,9 @@ namespace Routed.Layer
 
 		public override bool Interact()
 		{
+			if (Main.LocalPlayer.HeldItem.modItem is BasicDuct) return false;
+			if (Main.LocalPlayer.HeldItem.modItem is BaseModuleItem) return false;
+
 			return TryGetValue(Player.tileTargetX, Player.tileTargetY, out Duct duct) && duct.Interact();
 		}
 

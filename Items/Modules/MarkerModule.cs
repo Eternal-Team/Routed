@@ -1,6 +1,4 @@
-﻿using Terraria;
-
-namespace Routed.Items
+﻿namespace Routed.Items
 {
 	public class MarkerModule : BaseModuleItem<Modules.MarkerModule>
 	{

@@ -1,5 +1,4 @@
 ﻿using LayerLibrary;
-using Terraria;
 using Terraria.ModLoader;
 
 namespace Routed.Items

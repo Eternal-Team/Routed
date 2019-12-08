@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
-using Terraria;
 using Terraria.ModLoader.IO;
 
 namespace Routed.Layer
