@@ -4,8 +4,10 @@ using Terraria.ModLoader.IO;
 
 namespace Routed.Layer
 {
-	public class BaseComponent
+	public abstract class BaseModule
 	{
+		public abstract int DropItem { get; }
+
 		public Duct Parent;
 
 		public virtual void Draw(SpriteBatch spriteBatch)

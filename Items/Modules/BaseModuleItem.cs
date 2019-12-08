@@ -7,7 +7,7 @@ using Terraria.ModLoader;
 
 namespace Routed.Items
 {
-	public abstract class BaseComponentItem<T> : BaseItem where T : BaseComponent, new()
+	public abstract class BaseModuleItem<T> : BaseItem where T : BaseModule, new()
 	{
 		public override void SetDefaults()
 		{
@@ -27,8 +27,8 @@ namespace Routed.Items
 
 		public override bool ConsumeItem(Player player)
 		{
-			if (player.altFunctionUse == 2) ModContent.GetInstance<Routed>().RoutedLayer.RemoveComponent();
-			else return ModContent.GetInstance<Routed>().RoutedLayer.PlaceComponent(this);
+			if (player.altFunctionUse == 2) ModContent.GetInstance<Routed>().RoutedLayer.RemoveModule();
+			else return ModContent.GetInstance<Routed>().RoutedLayer.PlaceModule(this);
 
 			return false;
 		}

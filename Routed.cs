@@ -1,3 +1,4 @@
+using BaseLibrary.Input;
 using Routed.Layer;
 using Terraria;
 using Terraria.ModLoader;
@@ -11,6 +12,11 @@ namespace Routed
 		public override void Load()
 		{
 			RoutedLayer = new RoutedLayer();
+
+			if (!Main.dedServ)
+			{
+				MouseEvents.ButtonPressed += args => args.Button == MouseButton.Right && RoutedLayer.Interact();
+			}
 		}
 	}
 }

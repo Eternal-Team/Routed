@@ -16,6 +16,11 @@ namespace Routed
 			Main.spriteBatch.End();
 		}
 
+		public override void PreUpdate()
+		{
+			ModContent.GetInstance<Routed>().RoutedLayer.Update();
+		}
+
 		public override void NetSend(BinaryWriter writer)
 		{
 			ModContent.GetInstance<Routed>().RoutedLayer.NetSend(writer);

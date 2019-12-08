@@ -2,6 +2,7 @@
 using LayerLibrary;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Routed.Items;
 using System;
 using System.Collections.Generic;
 using Terraria;
@@ -14,9 +15,11 @@ namespace Routed.Layer
 	{
 		public override string Texture => "";
 
-		public override int DropItem => ModContent.ItemType<Items.Duct>();
+		public override int DropItem => ModContent.ItemType<BasicDuct>();
 
 		#region Static
+		private static Vector2 Origin = new Vector2(14);
+
 		private static Texture2D textureNormal;
 		private static Texture2D textureDiagonal;
 		private static Texture2D textureAll;
@@ -37,8 +40,9 @@ namespace Routed.Layer
 		}
 		#endregion
 
+		private ushort frame;
 		public RoutedNetwork Network;
-		public BaseComponent Component;
+		public BaseModule Module;
 
 		public Duct()
 		{
@@ -60,7 +64,7 @@ namespace Routed.Layer
 			foreach (Duct duct in GetNeighbors()) duct.Network.Merge(Network);
 		}
 
-		public override IEnumerable<Duct> GetNeighbors()
+		public IEnumerable<Duct> GetVisualNeighbors()
 		{
 			if (Layer.ContainsKey(Position.X + 1, Position.Y)) yield return Layer[Position.X + 1, Position.Y];
 			if (Layer.ContainsKey(Position.X - 1, Position.Y)) yield return Layer[Position.X - 1, Position.Y];
@@ -71,8 +75,6 @@ namespace Routed.Layer
 			if (Layer.ContainsKey(Position.X - 1, Position.Y + 1)) yield return Layer[Position.X - 1, Position.Y + 1];
 			if (Layer.ContainsKey(Position.X + 1, Position.Y - 1)) yield return Layer[Position.X + 1, Position.Y - 1];
 		}
-
-		private ushort frame;
 
 		public override void UpdateFrame()
 		{
@@ -88,8 +90,6 @@ namespace Routed.Layer
 			if (Layer.ContainsKey(Position.X - 1, Position.Y + 1)) frame |= 128;
 			if (Layer.ContainsKey(Position.X - 1, Position.Y)) frame |= 256;
 		}
-
-		private static Vector2 Origin = new Vector2(14);
 
 		public override void Draw(SpriteBatch spriteBatch)
 		{
@@ -125,25 +125,25 @@ namespace Routed.Layer
 				}
 			}
 
-			Component?.Draw(spriteBatch);
+			Module?.Draw(spriteBatch);
 		}
 
 		public override void Update()
 		{
-			Component?.Update();
+			Module?.Update();
 		}
 
-		public override bool Interact() => Component?.Interact() ?? false;
+		public override bool Interact() => Module?.Interact() ?? false;
 
 		public override TagCompound Save()
 		{
 			TagCompound tag = new TagCompound();
-			if (Component != null)
+			if (Module != null)
 			{
-				tag["Component"] = new TagCompound
+				tag["Module"] = new TagCompound
 				{
-					["Type"] = Component.GetType().AssemblyQualifiedName,
-					["Data"] = Component.Save()
+					["Type"] = Module.GetType().AssemblyQualifiedName,
+					["Data"] = Module.Save()
 				};
 			}
 
@@ -152,12 +152,12 @@ namespace Routed.Layer
 
 		public override void Load(TagCompound tag)
 		{
-			if (tag.ContainsKey("Component"))
+			if (tag.ContainsKey("Module"))
 			{
-				TagCompound component = tag.GetCompound("Component");
-				Component = (BaseComponent)Activator.CreateInstance(Type.GetType(component.GetString("Type")));
-				Component.Parent = this;
-				Component.Load(component.GetCompound("Data"));
+				TagCompound module = tag.GetCompound("Module");
+				Module = (BaseModule)Activator.CreateInstance(Type.GetType(module.GetString("Type")));
+				Module.Parent = this;
+				Module.Load(module.GetCompound("Data"));
 			}
 		}
 	}
