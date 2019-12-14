@@ -1,6 +1,4 @@
-﻿using BaseLibrary;
-using LayerLibrary;
-using Microsoft.Xna.Framework;
+﻿using LayerLibrary;
 using Microsoft.Xna.Framework.Graphics;
 using Routed.Items;
 using System.Collections.Generic;
@@ -108,15 +106,7 @@ namespace Routed.Layer
 		{
 			base.Draw(spriteBatch);
 
-			foreach (NetworkItem item in RoutedNetwork.Networks.SelectMany(network => network.NetworkItems))
-			{
-				Vector2 previous = item.PreviousPosition.ToScreenCoordinates(false) + new Vector2(8);
-				Vector2 current = item.CurrentPosition.ToScreenCoordinates(false) + new Vector2(8);
-
-				Vector2 position = Vector2.Lerp(previous, current, item.timer / (float)NetworkItem.speed);
-
-				spriteBatch.DrawItemInWorld(item.item, position, new Vector2(14));
-			}
+			foreach (RoutedNetwork network in RoutedNetwork.Networks) network.Draw(spriteBatch);
 		}
 	}
 }

@@ -50,14 +50,16 @@ namespace Routed.Layer
 
 					if (!item.IsAir)
 					{
-						Item.NewItem(CurrentPosition.X * 16, CurrentPosition.Y * 16, 16, 16, item.type, item.stack, pfix: item.prefix);
+						int i = Item.NewItem(CurrentPosition.X * 16, CurrentPosition.Y * 16, 16, 16, item.type, item.stack, pfix: item.prefix);
+						Main.item[i] = Main.item[i].CloneWithModdedDataFrom(item);
+						
 						item.TurnToAir();
 					}
 				}
 				else
 				{
 					CurrentPosition = path.Pop();
-					// check if current position exists in network
+					// todo: check if current position exists in network
 				}
 
 				timer = 0;

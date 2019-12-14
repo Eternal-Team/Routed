@@ -1,4 +1,7 @@
-﻿using Routed.Modules;
+﻿using BaseLibrary;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Routed.Modules;
 using System.Collections.Generic;
 using System.Linq;
 using Terraria.DataStructures;
@@ -42,6 +45,19 @@ namespace Routed.Layer
 				NetworkItem item = NetworkItems[i];
 				item.Update();
 				if (item.item == null || item.item.IsAir) NetworkItems.Remove(item);
+			}
+		}
+
+		public void Draw(SpriteBatch spriteBatch)
+		{
+			foreach (NetworkItem item in NetworkItems)
+			{
+				Vector2 previous = item.PreviousPosition.ToScreenCoordinates(false) + new Vector2(8);
+				Vector2 current = item.CurrentPosition.ToScreenCoordinates(false) + new Vector2(8);
+
+				Vector2 position = Vector2.Lerp(previous, current, item.timer / (float)NetworkItem.speed);
+
+				spriteBatch.DrawItemInWorld(item.item, position, new Vector2(14));
 			}
 		}
 
