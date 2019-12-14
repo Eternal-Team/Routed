@@ -1,7 +1,7 @@
-﻿using Microsoft.Xna.Framework;
+﻿using BaseLibrary;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Routed.Layer;
-using Terraria;
 using Terraria.ModLoader;
 
 namespace Routed.Modules
@@ -12,7 +12,8 @@ namespace Routed.Modules
 
 		public override void Draw(SpriteBatch spriteBatch)
 		{
-			spriteBatch.Draw(Main.magicPixel, new Rectangle((int)(Parent.Position.X * 16 - Main.screenPosition.X), (int)(Parent.Position.Y * 16 - Main.screenPosition.Y), 16, 16), Color.Blue * 0.5f);
+			Vector2 position = Parent.Position.ToScreenCoordinates(false);
+			spriteBatch.Draw(ModContent.GetTexture("Routed/Textures/Modules/ProviderModule"), position, Color.White);
 		}
 	}
 }

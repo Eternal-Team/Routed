@@ -87,6 +87,7 @@ namespace Routed.Layer
 			NetworkItems.AddRange(other.NetworkItems);
 		}
 
+		// bug: deletes items when networks get split
 		public void Reform()
 		{
 			Networks.Remove(this);

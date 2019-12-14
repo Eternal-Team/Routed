@@ -2,6 +2,8 @@
 {
 	public class MarkerModule : BaseModuleItem<Modules.MarkerModule>
 	{
+		public override string Texture => "Routed/Textures/Modules/MarkerModule";
+
 		public override void SetStaticDefaults()
 		{
 			DisplayName.SetDefault("Marker Module");

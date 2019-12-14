@@ -1,9 +1,9 @@
-﻿using BaseLibrary.UI;
+﻿using BaseLibrary;
+using BaseLibrary.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Routed.Layer;
 using System;
-using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -27,7 +27,8 @@ namespace Routed.Modules
 
 		public override void Draw(SpriteBatch spriteBatch)
 		{
-			spriteBatch.Draw(Main.magicPixel, new Rectangle((int)(Parent.Position.X * 16 - Main.screenPosition.X), (int)(Parent.Position.Y * 16 - Main.screenPosition.Y), 16, 16), Color.Orange * 0.5f);
+			Vector2 position = Parent.Position.ToScreenCoordinates(false);
+			spriteBatch.Draw(ModContent.GetTexture("Routed/Textures/Modules/ConsumerModule"), position, Color.White);
 		}
 
 		public override bool Interact()

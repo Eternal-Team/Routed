@@ -2,6 +2,8 @@
 {
 	public class RequesterModule : BaseModuleItem<Modules.RequesterModule>
 	{
+		public override string Texture => "Routed/Textures/Modules/RequesterModule";
+
 		public override void SetStaticDefaults()
 		{
 			DisplayName.SetDefault("Requester Module");

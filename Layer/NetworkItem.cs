@@ -1,5 +1,4 @@
-﻿using BaseLibrary;
-using ContainerLibrary;
+﻿using ContainerLibrary;
 using LayerLibrary;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +17,7 @@ namespace Routed.Layer
 		public Point16 CurrentPosition;
 		public Point16 PreviousPosition;
 
-		public const int speed = 30;
+		public const int speed = 5;
 		public int timer = speed;
 
 		public NetworkItem(Item item, Stack<Point16> path)
@@ -43,16 +42,18 @@ namespace Routed.Layer
 
 				if (path.Count == 0)
 				{
-					if (Utility.TryGetTileEntity(CurrentPosition, out ModTileEntity te) && te is IItemHandler handler)
+					if (ModContent.GetInstance<Routed>().RoutedLayer.TryGetValue(CurrentPosition, out Duct duct))
 					{
-						handler.Handler.InsertItem(ref item);
+						BaseModule module = duct.Module;
+						ItemHandler handler = module.GetHandler();
+						handler?.InsertItem(ref item);
 					}
 
 					if (!item.IsAir)
 					{
 						int i = Item.NewItem(CurrentPosition.X * 16, CurrentPosition.Y * 16, 16, 16, item.type, item.stack, pfix: item.prefix);
 						Main.item[i] = Main.item[i].CloneWithModdedDataFrom(item);
-						
+
 						item.TurnToAir();
 					}
 				}

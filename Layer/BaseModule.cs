@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿using ContainerLibrary;
+using Microsoft.Xna.Framework.Graphics;
 using Terraria.ModLoader.IO;
 
 namespace Routed.Layer
@@ -8,6 +9,8 @@ namespace Routed.Layer
 		public abstract int DropItem { get; }
 
 		public Duct Parent;
+
+		public virtual ItemHandler GetHandler() => null;
 
 		public virtual void Draw(SpriteBatch spriteBatch)
 		{

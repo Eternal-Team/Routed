@@ -91,6 +91,8 @@ namespace Routed.Layer
 			Vector2 position = Position.ToScreenCoordinates(false) + new Vector2(8);
 			Color color = Lighting.GetColor(Position.X, Position.Y);
 
+			spriteBatch.Draw(Main.magicPixel, new Rectangle((int)position.X - 8, (int)position.Y - 8, 16, 16), new Color(40, 40, 40));
+
 			if (frame == 0)
 			{
 				for (int i = 0; i < 4; i++) spriteBatch.Draw(textureNormal, position, null, color, MathHelper.PiOver2 * i, Origin, 1f, SpriteEffects.None, 0f);
