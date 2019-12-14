@@ -1,3 +1,4 @@
+using BaseLibrary;
 using BaseLibrary.Input;
 using Routed.Layer;
 using Terraria;
@@ -18,5 +19,7 @@ namespace Routed
 				MouseEvents.ButtonPressed += args => args.Button == MouseButton.Right && RoutedLayer.Interact();
 			}
 		}
+
+		public override void Unload() => this.UnloadNullableTypes();
 	}
 }

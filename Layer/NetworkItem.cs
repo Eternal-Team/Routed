@@ -1,9 +1,12 @@
 ﻿using BaseLibrary;
 using ContainerLibrary;
+using LayerLibrary;
 using System.Collections.Generic;
+using System.Linq;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader;
+using Terraria.ModLoader.IO;
 
 namespace Routed.Layer
 {
@@ -23,6 +26,13 @@ namespace Routed.Layer
 			this.item = item;
 			this.path = path;
 			CurrentPosition = PreviousPosition = path.Pop();
+		}
+
+		public NetworkItem(TagCompound tag, RoutedNetwork network)
+		{
+			item = tag.Get<Item>("Item");
+			CurrentPosition = PreviousPosition = tag.Get<Point16>("Position");
+			path = Pathfinding.FindPath(network.Tiles, CurrentPosition, tag.Get<Point16>("Destination"));
 		}
 
 		public void Update()
@@ -53,5 +63,12 @@ namespace Routed.Layer
 				timer = 0;
 			}
 		}
+
+		public TagCompound Save() => new TagCompound
+		{
+			["Item"] = item,
+			["Position"] = CurrentPosition,
+			["Destination"] = path.Count == 0 ? CurrentPosition : path.Last()
+		};
 	}
 }

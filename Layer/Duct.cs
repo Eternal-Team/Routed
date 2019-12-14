@@ -44,11 +44,6 @@ namespace Routed.Layer
 		public RoutedNetwork Network;
 		public BaseModule Module;
 
-		public Duct()
-		{
-			Network = new RoutedNetwork(this);
-		}
-
 		public override void OnPlace()
 		{
 			Merge();

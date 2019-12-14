@@ -4,6 +4,7 @@ using LayerLibrary;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Routed.Layer;
+using System.Linq;
 using Terraria;
 using Terraria.ModLoader;
 
@@ -36,10 +37,8 @@ namespace Routed.Modules
 
 				if (!item.IsAir)
 				{
-					foreach (MarkerModule module in Parent.Network.MarkerModules)
+					foreach (MarkerModule module in Parent.Network.MarkerModules.Where(module => module.GetHandler() != null))
 					{
-						//module.GetHandler()?.InsertItem(ref item);
-
 						//if(module.IsItemValid(item))
 
 						Parent.Network.NetworkItems.Add(new NetworkItem(item, Pathfinding.FindPath(Parent.Network.Tiles, Parent.Position, module.Parent.Position)));

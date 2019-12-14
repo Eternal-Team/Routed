@@ -23,11 +23,20 @@ namespace Routed.Layer
 			return TryGetValue(Player.tileTargetX, Player.tileTargetY, out Duct duct) && duct.Interact();
 		}
 
+		public override List<TagCompound> Save() => RoutedNetwork.Networks.Select(network => network.Save()).ToList();
+
 		public override void Load(List<TagCompound> list)
 		{
-			base.Load(list);
+			data.Clear();
+			RoutedNetwork.Networks.Clear();
 
-			foreach (Duct duct in data.Values) duct.Merge();
+			foreach (TagCompound compound in list)
+			{
+				RoutedNetwork network = new RoutedNetwork();
+				network.Load(compound);
+			}
+
+			foreach (Duct duct in data.Values) duct.UpdateFrame();
 		}
 
 		public override bool Place(BaseLayerItem item)
@@ -43,6 +52,7 @@ namespace Routed.Layer
 					Frame = Point16.Zero,
 					Layer = this
 				};
+				element.Network = new RoutedNetwork(element);
 				data.Add(new Point16(posX, posY), element);
 				element.OnPlace();
 
