@@ -21,6 +21,8 @@ namespace Routed.Layer
 			return TryGetValue(Player.tileTargetX, Player.tileTargetY, out Duct duct) && duct.Interact();
 		}
 
+		public Dictionary<Point16, Duct> a => data;
+
 		public override List<TagCompound> Save() => RoutedNetwork.Networks.Select(network => network.Save()).ToList();
 
 		public override void Load(List<TagCompound> list)
@@ -50,7 +52,6 @@ namespace Routed.Layer
 					Frame = Point16.Zero,
 					Layer = this
 				};
-				element.Network = new RoutedNetwork(element);
 				data.Add(new Point16(posX, posY), element);
 				element.OnPlace();
 
@@ -74,6 +75,23 @@ namespace Routed.Layer
 			return false;
 		}
 
+		public override void Remove()
+		{
+			int posX = Player.tileTargetX;
+			int posY = Player.tileTargetY;
+
+			if (TryGetValue(posX, posY, out Duct element))
+			{
+				RemoveModule();
+				element.OnRemove();
+				data.Remove(new Point16(posX, posY));
+
+				foreach (Duct neighbor in element.GetVisualNeighbors()) neighbor.UpdateFrame();
+
+				Item.NewItem(posX * 16, posY * 16, TileSize * 16, TileSize * 16, element.DropItem);
+			}
+		}
+
 		public void RemoveModule()
 		{
 			int posX = Player.tileTargetX;
@@ -84,12 +102,6 @@ namespace Routed.Layer
 				Item.NewItem(posX * 16, posY * 16, 16, 16, duct.Module.DropItem);
 				duct.Module = null;
 			}
-		}
-
-		public override void Remove()
-		{
-			RemoveModule();
-			base.Remove();
 		}
 
 		public override void Update()

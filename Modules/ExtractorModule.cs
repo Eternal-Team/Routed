@@ -38,7 +38,7 @@ namespace Routed.Modules
 
 				foreach (MarkerModule module in Parent.Network.MarkerModules.Where(module => module.GetHandler() != null))
 				{
-					// todo: validate
+					// todo: validate item valid for inventory
 					//if(module.IsItemValid(item))
 
 					Parent.Network.NetworkItems.Add(new NetworkItem(item, Pathfinding.FindPath(Parent.Network.Tiles, Parent.Position, module.Parent.Position)));

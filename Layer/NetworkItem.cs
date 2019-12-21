@@ -1,4 +1,5 @@
-﻿using ContainerLibrary;
+﻿using BaseLibrary;
+using ContainerLibrary;
 using LayerLibrary;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +18,7 @@ namespace Routed.Layer
 		public Point16 CurrentPosition;
 		public Point16 PreviousPosition;
 
-		public const int speed = 5;
+		public const int speed =20;
 		public int timer = speed;
 
 		public NetworkItem(Item item, Stack<Point16> path)
@@ -51,16 +52,19 @@ namespace Routed.Layer
 
 					if (!item.IsAir)
 					{
-						int i = Item.NewItem(CurrentPosition.X * 16, CurrentPosition.Y * 16, 16, 16, item.type, item.stack, pfix: item.prefix);
-						Main.item[i] = Main.item[i].CloneWithModdedDataFrom(item);
-
+						Utility.NewItem(CurrentPosition.X * 16, CurrentPosition.Y * 16, 16, 16, item);
 						item.TurnToAir();
 					}
 				}
 				else
 				{
 					CurrentPosition = path.Pop();
-					// todo: check if current position exists in network
+
+					if (!ModContent.GetInstance<Routed>().RoutedLayer.ContainsKey(CurrentPosition))
+					{
+						Utility.NewItem(CurrentPosition.X * 16, CurrentPosition.Y * 16, 16, 16, item);
+						item.TurnToAir();
+					}
 				}
 
 				timer = 0;

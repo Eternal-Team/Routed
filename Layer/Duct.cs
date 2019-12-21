@@ -5,7 +5,9 @@ using Microsoft.Xna.Framework.Graphics;
 using Routed.Items;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Terraria;
+using Terraria.DataStructures;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
@@ -46,17 +48,77 @@ namespace Routed.Layer
 
 		public override void OnPlace()
 		{
-			Merge();
+			List<RoutedNetwork> networks = GetNeighbors().Select(duct => duct.Network).Distinct().ToList();
+			RoutedNetwork network = new RoutedNetwork
+			{
+				Tiles = networks.SelectMany(routedNetwork => routedNetwork.Tiles).Concat(this).ToList(),
+				NetworkItems = networks.SelectMany(routedNetwork => routedNetwork.NetworkItems).ToList()
+			};
+
+			foreach (Duct duct in network.Tiles)
+			{
+				RoutedNetwork.Networks.Remove(duct.Network);
+				duct.Network = network;
+			}
 		}
 
 		public override void OnRemove()
 		{
-			Network.RemoveTile(this);
+			if (Network.Tiles.Count == 1) RoutedNetwork.Networks.Remove(Network);
+			// maybe add a special case for end-of-line tiles
+			else
+			{
+				List<Point16> visited = new List<Point16>();
+				List<List<Point16>> doot = new List<List<Point16>>();
+
+				int numNetworks = 0;
+
+				foreach (Duct duct in GetNeighbors())
+				{
+					if (visited.Contains(duct.Position)) continue;
+
+					numNetworks++;
+					visited.Add(duct.Position);
+
+					List<Point16> p = new List<Point16> { Position };
+					GetNeighborsRecursive(duct, p);
+					visited.AddRange(p);
+
+					p.Remove(Position);
+					doot.Add(p);
+				}
+
+				if (numNetworks <= 1) Network.Tiles.Remove(this);
+				else
+				{
+					for (int i = 0; i < doot.Count; i++)
+					{
+						RoutedNetwork network = new RoutedNetwork
+						{
+							Tiles = doot[i].Select(position => Layer[position]).ToList(),
+							// todo
+							//NetworkItems = doot[i].Select(position => Layer[position].Network).Distinct().SelectMany(routedNetwork => routedNetwork.NetworkItems).ToList()
+						};
+						foreach (Duct duct in network.Tiles)
+						{
+							RoutedNetwork.Networks.Remove(duct.Network);
+							duct.Network = network;
+						}
+					}
+				}
+			}
 		}
 
-		public void Merge()
+		public void GetNeighborsRecursive(Duct duct, List<Point16> points)
 		{
-			foreach (Duct duct in GetNeighbors()) duct.Network.Merge(Network);
+			foreach (Duct neighbor in duct.GetNeighbors())
+			{
+				if (!points.Contains(neighbor.Position))
+				{
+					points.Add(neighbor.Position);
+					GetNeighborsRecursive(neighbor, points);
+				}
+			}
 		}
 
 		public IEnumerable<Duct> GetVisualNeighbors()
@@ -121,6 +183,8 @@ namespace Routed.Layer
 					else if (!bit1 && !bit3) spriteBatch.Draw(textureAll, position, null, color, angle, Origin + new Vector2(1), 1f, SpriteEffects.None, 0f);
 				}
 			}
+
+			spriteBatch.Draw(Main.magicPixel, new Rectangle((int)(position.X - 8), (int)(position.Y - 8), 16, 16), Network.debugColor);
 
 			Module?.Draw(spriteBatch);
 		}

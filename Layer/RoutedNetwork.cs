@@ -14,7 +14,7 @@ namespace Routed.Layer
 	{
 		public static List<RoutedNetwork> Networks = new List<RoutedNetwork>();
 
-		public List<Duct> Tiles { private set; get; }
+		public List<Duct> Tiles { set; get; }
 
 		public List<ProviderModule> ProviderModules => Tiles.Select(duct => duct.Module).OfType<ProviderModule>().ToList();
 
@@ -26,14 +26,20 @@ namespace Routed.Layer
 
 		public List<NetworkItem> NetworkItems = new List<NetworkItem>();
 
+		internal Color debugColor;
+
 		public RoutedNetwork()
 		{
 			Networks.Add(this);
+
+			debugColor = Utility.RandomColor();
 		}
 
 		public RoutedNetwork(Duct duct)
 		{
 			Networks.Add(this);
+
+			debugColor = Utility.RandomColor();
 
 			Tiles = new List<Duct> { duct };
 		}
@@ -59,42 +65,6 @@ namespace Routed.Layer
 
 				spriteBatch.DrawItemInWorld(item.item, position, new Vector2(14));
 			}
-		}
-
-		public void AddTile(Duct tile)
-		{
-			if (!Tiles.Contains(tile))
-			{
-				Networks.Remove(tile.Network);
-				tile.Network = this;
-				Tiles.Add(tile);
-			}
-		}
-
-		public void RemoveTile(Duct tile)
-		{
-			if (Tiles.Contains(tile))
-			{
-				Tiles.Remove(tile);
-				Reform();
-			}
-		}
-
-		public void Merge(RoutedNetwork other)
-		{
-			for (int i = 0; i < other.Tiles.Count; i++) AddTile(other.Tiles[i]);
-
-			NetworkItems.AddRange(other.NetworkItems);
-		}
-
-		// bug: deletes items when networks get split
-		public void Reform()
-		{
-			Networks.Remove(this);
-
-			for (int i = 0; i < Tiles.Count; i++) Tiles[i].Network = new RoutedNetwork(Tiles[i]);
-
-			for (int i = 0; i < Tiles.Count; i++) Tiles[i].Merge();
 		}
 
 		public TagCompound Save()
