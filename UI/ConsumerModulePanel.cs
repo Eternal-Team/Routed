@@ -11,7 +11,7 @@ using Terraria.ModLoader;
 using Terraria.UI;
 using Terraria.UI.Chat;
 
-namespace DimensionalStorage.UI
+namespace Routed.UI
 {
 	public class ConsumerModulePanel : BaseUIPanel<ConsumerModule>
 	{

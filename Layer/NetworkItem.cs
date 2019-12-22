@@ -18,7 +18,7 @@ namespace Routed.Layer
 		public Point16 CurrentPosition;
 		public Point16 PreviousPosition;
 
-		public const int speed =20;
+		public const int speed = 20;
 		public int timer = speed;
 
 		public NetworkItem(Item item, Stack<Point16> path)
