@@ -96,11 +96,11 @@ namespace Routed.Layer
 						RoutedNetwork network = new RoutedNetwork
 						{
 							Tiles = doot[i].Select(position => Layer[position]).ToList(),
-							// todo
-							//NetworkItems = doot[i].Select(position => Layer[position].Network).Distinct().SelectMany(routedNetwork => routedNetwork.NetworkItems).ToList()
+							NetworkItems = doot[i].Select(position => Layer[position].Network).Distinct().SelectMany(routedNetwork => routedNetwork.NetworkItems).ToList()
 						};
 						foreach (Duct duct in network.Tiles)
 						{
+							duct.Network.NetworkItems.Clear();
 							RoutedNetwork.Networks.Remove(duct.Network);
 							duct.Network = network;
 						}
@@ -184,7 +184,7 @@ namespace Routed.Layer
 				}
 			}
 
-			spriteBatch.Draw(Main.magicPixel, new Rectangle((int)(position.X - 8), (int)(position.Y - 8), 16, 16), Network.debugColor);
+			//spriteBatch.Draw(Main.magicPixel, new Rectangle((int)(position.X - 8), (int)(position.Y - 8), 16, 16), Network.debugColor);
 
 			Module?.Draw(spriteBatch);
 		}
