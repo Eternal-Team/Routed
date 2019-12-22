@@ -4,7 +4,6 @@ using LayerLibrary;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Routed.Layer;
-using System;
 using System.Linq;
 using Terraria;
 using Terraria.ModLoader;
@@ -34,17 +33,17 @@ namespace Routed.Modules
 
 			// todo: add conditions to extraction (leave x in, take specific items, etc.)
 
-			int index = Array.FindIndex(handler.Items, i => !i.IsAir);
-			if (index < 0) return;
-
-			Item item = handler.ExtractItem(index, 10);
-
-			foreach (MarkerModule module in Parent.Network.MarkerModules.Where(module => module.GetHandler() != null))
+			for (int i = 0; i < handler.Slots; i++)
 			{
-				if (!module.IsItemValid(item)) continue;
+				Item item = handler.ExtractItem(i, 10);
+				MarkerModule module = Parent.Network.MarkerModules.FirstOrDefault(markerModule => markerModule.GetHandler() != null && markerModule.IsItemValid(item));
+				if (module != null)
+				{
+					Parent.Network.NetworkItems.Add(new NetworkItem(item, Pathfinding.FindPath(Parent.Network.Tiles, Parent.Position, module.Parent.Position)));
+					break;
+				}
 
-				Parent.Network.NetworkItems.Add(new NetworkItem(item, Pathfinding.FindPath(Parent.Network.Tiles, Parent.Position, module.Parent.Position)));
-				break;
+				handler.InsertItem(ref item);
 			}
 		}
 

@@ -33,6 +33,8 @@ namespace Routed.Modules
 	// basically default route
 	public class AnyItemsMode : FilterMode
 	{
+		public AnyItemsMode() { }
+
 		public AnyItemsMode(BaseModule module)
 		{
 			Module = module;
@@ -148,6 +150,13 @@ namespace Routed.Modules
 		}
 
 		public override bool IsItemValid(Item item) => mode.Check(item);
+
+		public override bool Interact()
+		{
+			BaseLibrary.BaseLibrary.PanelGUI.UI.HandleUI(this);
+
+			return true;
+		}
 
 		public override TagCompound Save() => new TagCompound
 		{
