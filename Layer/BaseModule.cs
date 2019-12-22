@@ -1,5 +1,6 @@
 ﻿using ContainerLibrary;
 using Microsoft.Xna.Framework.Graphics;
+using Terraria;
 using Terraria.ModLoader.IO;
 
 namespace Routed.Layer
@@ -11,6 +12,8 @@ namespace Routed.Layer
 		public Duct Parent;
 
 		public virtual ItemHandler GetHandler() => null;
+
+		public virtual bool IsItemValid(Item item) => true;
 
 		public virtual void Draw(SpriteBatch spriteBatch)
 		{

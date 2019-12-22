@@ -62,10 +62,11 @@ namespace Routed.Layer
 			}
 		}
 
+		// todo: try to calculate new paths for items if current path is disconnected
 		public override void OnRemove()
 		{
 			if (Network.Tiles.Count == 1) RoutedNetwork.Networks.Remove(Network);
-			// maybe add a special case for end-of-line tiles
+			else if (GetNeighbors().Count() == 1) Network.Tiles.Remove(this);
 			else
 			{
 				List<Point16> visited = new List<Point16>();
