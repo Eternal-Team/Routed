@@ -140,8 +140,8 @@ namespace Routed.Modules
 			UUID = Guid.NewGuid();
 		}
 
-		// todo: fix this
-		public override int DropItem => ModContent.ItemType<Items.MarkerModule>();
+		public override int DropItem => ModContent.GetInstance<Routed>().ItemType("MarkerModule" + Mode.GetType().Name.Replace("Mode", ""));
+
 		public Guid UUID { get; set; }
 		public BaseUIPanel UI { get; set; }
 		public LegacySoundStyle CloseSound => SoundID.Item1;

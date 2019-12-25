@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Routed.Items;
 using Routed.Layer;
+using System;
 using System.Linq;
 using Terraria;
 using Terraria.ModLoader;
@@ -18,7 +19,24 @@ namespace Routed.Modules
 		private int ItemsPerExtraction;
 
 		private int timer;
-		public override int DropItem => ModContent.ItemType<Items.ExtractorModule>();
+
+		public override int DropItem
+		{
+			get
+			{
+				switch (ItemsPerExtraction)
+				{
+					case 10:
+						return ModContent.ItemType<BasicExtractorModule>();
+					case 100:
+						return ModContent.ItemType<AdvancedExtractorModule>();
+					case 1000:
+						return ModContent.ItemType<EliteExtractorModule>();
+					default:
+						throw new NotImplementedException();
+				}
+			}
+		}
 
 		public override void Draw(SpriteBatch spriteBatch)
 		{
