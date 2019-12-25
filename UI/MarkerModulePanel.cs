@@ -3,9 +3,7 @@ using BaseLibrary.UI;
 using BaseLibrary.UI.Elements;
 using Microsoft.Xna.Framework;
 using Routed.Modules;
-using System;
-using System.Linq;
-using Terraria.ModLoader;
+using Terraria;
 
 namespace Routed.UI
 {
@@ -14,7 +12,7 @@ namespace Routed.UI
 		public override void OnInitialize()
 		{
 			Width = (408, 0);
-			Height = (308, 0);
+			Height = (172, 0);
 			this.Center();
 
 			UITextButton buttonClose = new UITextButton("X")
@@ -41,36 +39,31 @@ namespace Routed.UI
 					break;
 				case InInventoryMode _:
 					break;
-			}
-
-			var enumerable = ModContent.GetInstance<Routed>().Code.GetTypes().Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(FilterMode)));
-
-			UIGrid<UIText> grid = new UIGrid<UIText>
-			{
-				Width = (0, 1),
-				Height = (-28, 1),
-				Top = (28, 0)
-			};
-			Append(grid);
-
-			foreach (Type type in enumerable)
-			{
-				UIText text = new UIText(type.Name)
+				case FilteredItemsMode mode:
 				{
-					Width = (0, 1),
-					Height = (20, 0),
-					HorizontalAlignment = HorizontalAlignment.Left,
-					VerticalAlignment = VerticalAlignment.Center
-				};
-				text.OnClick += (evt, element) =>
-				{
-					Container.Mode = (FilterMode)Activator.CreateInstance(type);
-					Container.Mode.Module = Container;
+					UIGrid<UIConsumerSlot> grid = new UIGrid<UIConsumerSlot>(9)
+					{
+						Width = (0, 1),
+						Height = (-28, 1),
+						Top = (28, 0)
+					};
+					Append(grid);
 
-					grid.Items.ForEach(uiText => uiText.TextColor = Color.White);
-					text.TextColor = Color.Green;
-				};
-				grid.Add(text);
+					for (int i = 0; i < mode.whitelist.Count; i++)
+					{
+						UIConsumerSlot slot = new UIConsumerSlot { PreviewItem = new Item() };
+						var i1 = i;
+						slot.OnClick += (evt, element) =>
+						{
+							mode.whitelist[i1] = Main.mouseItem.type;
+							slot.PreviewItem.SetDefaults(Main.mouseItem.type);
+						};
+						if (mode.whitelist[i] > 0) slot.PreviewItem.SetDefaults(mode.whitelist[i]);
+						grid.Add(slot);
+					}
+
+					break;
+				}
 			}
 		}
 	}
