@@ -107,8 +107,8 @@ namespace Routed.UI
 
 		private class UISlot : BaseElement
 		{
-			public Item PreviewItem;
 			private int index;
+			public Item PreviewItem;
 
 			public UISlot(int index)
 			{

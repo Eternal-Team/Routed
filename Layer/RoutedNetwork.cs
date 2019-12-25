@@ -14,19 +14,9 @@ namespace Routed.Layer
 	{
 		public static List<RoutedNetwork> Networks = new List<RoutedNetwork>();
 
-		public List<Duct> Tiles { set; get; }
-
-		public List<ProviderModule> ProviderModules => Tiles.Select(duct => duct.Module).OfType<ProviderModule>().ToList();
-
-		public List<ConsumerModule> ConsumerModules => Tiles.Select(duct => duct.Module).OfType<ConsumerModule>().ToList();
-
-		public List<MarkerModule> MarkerModules => Tiles.Select(duct => duct.Module).OfType<MarkerModule>().ToList();
-
-		public List<ExtractorModule> ExtractorModules => Tiles.Select(duct => duct.Module).OfType<ExtractorModule>().ToList();
+		internal Color debugColor;
 
 		public List<NetworkItem> NetworkItems = new List<NetworkItem>();
-
-		internal Color debugColor;
 
 		public RoutedNetwork()
 		{
@@ -44,15 +34,15 @@ namespace Routed.Layer
 			Tiles = new List<Duct> { duct };
 		}
 
-		public void Update()
-		{
-			for (int i = 0; i < NetworkItems.Count; i++)
-			{
-				NetworkItem item = NetworkItems[i];
-				item.Update();
-				if (item.item == null || item.item.IsAir) NetworkItems.Remove(item);
-			}
-		}
+		public List<Duct> Tiles { set; get; }
+
+		public List<ProviderModule> ProviderModules => Tiles.Select(duct => duct.Module).OfType<ProviderModule>().ToList();
+
+		public List<ConsumerModule> ConsumerModules => Tiles.Select(duct => duct.Module).OfType<ConsumerModule>().ToList();
+
+		public List<MarkerModule> MarkerModules => Tiles.Select(duct => duct.Module).OfType<MarkerModule>().ToList();
+
+		public List<ExtractorModule> ExtractorModules => Tiles.Select(duct => duct.Module).OfType<ExtractorModule>().ToList();
 
 		public void Draw(SpriteBatch spriteBatch)
 		{
@@ -65,19 +55,6 @@ namespace Routed.Layer
 
 				spriteBatch.DrawItemInWorld(item.item, position, new Vector2(14));
 			}
-		}
-
-		public TagCompound Save()
-		{
-			return new TagCompound
-			{
-				["Tiles"] = Tiles.Select(duct => new TagCompound
-				{
-					["Position"] = duct.Position,
-					["Data"] = duct.Save()
-				}).ToList(),
-				["NetworkItems"] = NetworkItems.Select(item => item.Save()).ToList()
-			};
 		}
 
 		public void Load(TagCompound tag)
@@ -103,6 +80,29 @@ namespace Routed.Layer
 			foreach (TagCompound compound in tag.GetList<TagCompound>("NetworkItems"))
 			{
 				NetworkItems.Add(new NetworkItem(compound, this));
+			}
+		}
+
+		public TagCompound Save()
+		{
+			return new TagCompound
+			{
+				["Tiles"] = Tiles.Select(duct => new TagCompound
+				{
+					["Position"] = duct.Position,
+					["Data"] = duct.Save()
+				}).ToList(),
+				["NetworkItems"] = NetworkItems.Select(item => item.Save()).ToList()
+			};
+		}
+
+		public void Update()
+		{
+			for (int i = 0; i < NetworkItems.Count; i++)
+			{
+				NetworkItem item = NetworkItems[i];
+				item.Update();
+				if (item.item == null || item.item.IsAir) NetworkItems.Remove(item);
 			}
 		}
 	}

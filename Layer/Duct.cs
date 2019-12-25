@@ -15,36 +15,90 @@ namespace Routed.Layer
 {
 	public class Duct : ModLayerElement<Duct>
 	{
+		private ushort frame;
+		public BaseModule Module;
+		public RoutedNetwork Network;
 		public override string Texture => "";
 
 		public override int DropItem => ModContent.ItemType<BasicDuct>();
 
-		#region Static
-		private static Vector2 Origin = new Vector2(14);
-
-		private static Texture2D textureNormal;
-		private static Texture2D textureDiagonal;
-		private static Texture2D textureAll;
-		private static Texture2D textureIntersection;
-		private static Texture2D textureStraightV;
-		private static Texture2D textureStraightH;
-
-		private const string TextureLocation = "Routed/Textures/Duct/";
-
-		static Duct()
+		public override void Draw(SpriteBatch spriteBatch)
 		{
-			textureNormal = ModContent.GetTexture(TextureLocation + "Normal");
-			textureDiagonal = ModContent.GetTexture(TextureLocation + "Diagonal");
-			textureAll = ModContent.GetTexture(TextureLocation + "All");
-			textureIntersection = ModContent.GetTexture(TextureLocation + "Intersection");
-			textureStraightV = ModContent.GetTexture(TextureLocation + "StraightV");
-			textureStraightH = ModContent.GetTexture(TextureLocation + "StraightH");
-		}
-		#endregion
+			Vector2 position = Position.ToScreenCoordinates(false) + new Vector2(8);
+			Color color = Lighting.GetColor(Position.X, Position.Y);
 
-		private ushort frame;
-		public RoutedNetwork Network;
-		public BaseModule Module;
+			spriteBatch.Draw(Main.magicPixel, new Rectangle((int)position.X - 8, (int)position.Y - 8, 16, 16), new Color(40, 40, 40));
+
+			if (frame == 0)
+			{
+				for (int i = 0; i < 4; i++) spriteBatch.Draw(textureNormal, position, null, color, MathHelper.PiOver2 * i, Origin, 1f, SpriteEffects.None, 0f);
+			}
+			else if (frame == 511)
+			{
+				Vector2 origin = Origin + new Vector2(1);
+				for (int i = 0; i < 4; i++) spriteBatch.Draw(textureAll, position, null, color, MathHelper.PiOver2 * i, origin, 1f, SpriteEffects.None, 0f);
+			}
+			else
+			{
+				for (int i = 0; i < 4; i++)
+				{
+					float angle = MathHelper.PiOver2 * i;
+
+					ushort pow = (ushort)Math.Pow(4, i);
+					bool bit1 = (frame & (1 * pow)) == 0;
+					bool bit2 = (frame & (2 * pow)) == 0;
+					bool bit3 = (frame & (4 * pow)) == 0;
+
+					if (bit1 && bit2 && bit3) spriteBatch.Draw(textureNormal, position, null, color, angle, Origin, 1f, SpriteEffects.None, 0f);
+					else if (bit1 && !bit2 && bit3) spriteBatch.Draw(textureDiagonal, position, null, color, angle, Origin, 1f, SpriteEffects.None, 0f);
+					else if (!bit1 && bit2 && !bit3) spriteBatch.Draw(textureIntersection, position, null, color, angle, Origin + new Vector2(2), 1f, SpriteEffects.None, 0f);
+					else if (bit1 && bit2) spriteBatch.Draw(textureStraightV, position, null, color, angle, Origin, 1f, SpriteEffects.None, 0f);
+					else if (!bit1 && bit2) spriteBatch.Draw(textureStraightH, position, null, color, angle, Origin, 1f, SpriteEffects.None, 0f);
+					else if (!bit1 && !bit3) spriteBatch.Draw(textureAll, position, null, color, angle, Origin + new Vector2(1), 1f, SpriteEffects.None, 0f);
+				}
+			}
+
+			//spriteBatch.Draw(Main.magicPixel, new Rectangle((int)(position.X - 8), (int)(position.Y - 8), 16, 16), Network.debugColor);
+
+			Module?.Draw(spriteBatch);
+		}
+
+		public void GetNeighborsRecursive(Duct duct, List<Point16> points)
+		{
+			foreach (Duct neighbor in duct.GetNeighbors())
+			{
+				if (!points.Contains(neighbor.Position))
+				{
+					points.Add(neighbor.Position);
+					GetNeighborsRecursive(neighbor, points);
+				}
+			}
+		}
+
+		public IEnumerable<Duct> GetVisualNeighbors()
+		{
+			if (Layer.ContainsKey(Position.X + 1, Position.Y)) yield return Layer[Position.X + 1, Position.Y];
+			if (Layer.ContainsKey(Position.X - 1, Position.Y)) yield return Layer[Position.X - 1, Position.Y];
+			if (Layer.ContainsKey(Position.X, Position.Y + 1)) yield return Layer[Position.X, Position.Y + 1];
+			if (Layer.ContainsKey(Position.X, Position.Y - 1)) yield return Layer[Position.X, Position.Y - 1];
+			if (Layer.ContainsKey(Position.X + 1, Position.Y + 1)) yield return Layer[Position.X + 1, Position.Y + 1];
+			if (Layer.ContainsKey(Position.X - 1, Position.Y - 1)) yield return Layer[Position.X - 1, Position.Y - 1];
+			if (Layer.ContainsKey(Position.X - 1, Position.Y + 1)) yield return Layer[Position.X - 1, Position.Y + 1];
+			if (Layer.ContainsKey(Position.X + 1, Position.Y - 1)) yield return Layer[Position.X + 1, Position.Y - 1];
+		}
+
+		public override bool Interact() => Module?.Interact() ?? false;
+
+		public override void Load(TagCompound tag)
+		{
+			if (tag.ContainsKey("Module"))
+			{
+				TagCompound module = tag.GetCompound("Module");
+				Module = (BaseModule)Activator.CreateInstance(Type.GetType(module.GetString("Type")));
+				Module.Parent = this;
+				Module.Load(module.GetCompound("Data"));
+			}
+		}
 
 		public override void OnPlace()
 		{
@@ -110,28 +164,24 @@ namespace Routed.Layer
 			}
 		}
 
-		public void GetNeighborsRecursive(Duct duct, List<Point16> points)
+		public override TagCompound Save()
 		{
-			foreach (Duct neighbor in duct.GetNeighbors())
+			TagCompound tag = new TagCompound();
+			if (Module != null)
 			{
-				if (!points.Contains(neighbor.Position))
+				tag["Module"] = new TagCompound
 				{
-					points.Add(neighbor.Position);
-					GetNeighborsRecursive(neighbor, points);
-				}
+					["Type"] = Module.GetType().AssemblyQualifiedName,
+					["Data"] = Module.Save()
+				};
 			}
+
+			return tag;
 		}
 
-		public IEnumerable<Duct> GetVisualNeighbors()
+		public override void Update()
 		{
-			if (Layer.ContainsKey(Position.X + 1, Position.Y)) yield return Layer[Position.X + 1, Position.Y];
-			if (Layer.ContainsKey(Position.X - 1, Position.Y)) yield return Layer[Position.X - 1, Position.Y];
-			if (Layer.ContainsKey(Position.X, Position.Y + 1)) yield return Layer[Position.X, Position.Y + 1];
-			if (Layer.ContainsKey(Position.X, Position.Y - 1)) yield return Layer[Position.X, Position.Y - 1];
-			if (Layer.ContainsKey(Position.X + 1, Position.Y + 1)) yield return Layer[Position.X + 1, Position.Y + 1];
-			if (Layer.ContainsKey(Position.X - 1, Position.Y - 1)) yield return Layer[Position.X - 1, Position.Y - 1];
-			if (Layer.ContainsKey(Position.X - 1, Position.Y + 1)) yield return Layer[Position.X - 1, Position.Y + 1];
-			if (Layer.ContainsKey(Position.X + 1, Position.Y - 1)) yield return Layer[Position.X + 1, Position.Y - 1];
+			Module?.Update();
 		}
 
 		public override void UpdateFrame()
@@ -149,78 +199,27 @@ namespace Routed.Layer
 			if (Layer.ContainsKey(Position.X - 1, Position.Y)) frame |= 256;
 		}
 
-		public override void Draw(SpriteBatch spriteBatch)
+		#region Static
+		private static Vector2 Origin = new Vector2(14);
+
+		private static Texture2D textureNormal;
+		private static Texture2D textureDiagonal;
+		private static Texture2D textureAll;
+		private static Texture2D textureIntersection;
+		private static Texture2D textureStraightV;
+		private static Texture2D textureStraightH;
+
+		private const string TextureLocation = "Routed/Textures/Duct/";
+
+		static Duct()
 		{
-			Vector2 position = Position.ToScreenCoordinates(false) + new Vector2(8);
-			Color color = Lighting.GetColor(Position.X, Position.Y);
-
-			spriteBatch.Draw(Main.magicPixel, new Rectangle((int)position.X - 8, (int)position.Y - 8, 16, 16), new Color(40, 40, 40));
-
-			if (frame == 0)
-			{
-				for (int i = 0; i < 4; i++) spriteBatch.Draw(textureNormal, position, null, color, MathHelper.PiOver2 * i, Origin, 1f, SpriteEffects.None, 0f);
-			}
-			else if (frame == 511)
-			{
-				Vector2 origin = Origin + new Vector2(1);
-				for (int i = 0; i < 4; i++) spriteBatch.Draw(textureAll, position, null, color, MathHelper.PiOver2 * i, origin, 1f, SpriteEffects.None, 0f);
-			}
-			else
-			{
-				for (int i = 0; i < 4; i++)
-				{
-					float angle = MathHelper.PiOver2 * i;
-
-					ushort pow = (ushort)Math.Pow(4, i);
-					bool bit1 = (frame & (1 * pow)) == 0;
-					bool bit2 = (frame & (2 * pow)) == 0;
-					bool bit3 = (frame & (4 * pow)) == 0;
-
-					if (bit1 && bit2 && bit3) spriteBatch.Draw(textureNormal, position, null, color, angle, Origin, 1f, SpriteEffects.None, 0f);
-					else if (bit1 && !bit2 && bit3) spriteBatch.Draw(textureDiagonal, position, null, color, angle, Origin, 1f, SpriteEffects.None, 0f);
-					else if (!bit1 && bit2 && !bit3) spriteBatch.Draw(textureIntersection, position, null, color, angle, Origin + new Vector2(2), 1f, SpriteEffects.None, 0f);
-					else if (bit1 && bit2) spriteBatch.Draw(textureStraightV, position, null, color, angle, Origin, 1f, SpriteEffects.None, 0f);
-					else if (!bit1 && bit2) spriteBatch.Draw(textureStraightH, position, null, color, angle, Origin, 1f, SpriteEffects.None, 0f);
-					else if (!bit1 && !bit3) spriteBatch.Draw(textureAll, position, null, color, angle, Origin + new Vector2(1), 1f, SpriteEffects.None, 0f);
-				}
-			}
-
-			//spriteBatch.Draw(Main.magicPixel, new Rectangle((int)(position.X - 8), (int)(position.Y - 8), 16, 16), Network.debugColor);
-
-			Module?.Draw(spriteBatch);
+			textureNormal = ModContent.GetTexture(TextureLocation + "Normal");
+			textureDiagonal = ModContent.GetTexture(TextureLocation + "Diagonal");
+			textureAll = ModContent.GetTexture(TextureLocation + "All");
+			textureIntersection = ModContent.GetTexture(TextureLocation + "Intersection");
+			textureStraightV = ModContent.GetTexture(TextureLocation + "StraightV");
+			textureStraightH = ModContent.GetTexture(TextureLocation + "StraightH");
 		}
-
-		public override void Update()
-		{
-			Module?.Update();
-		}
-
-		public override bool Interact() => Module?.Interact() ?? false;
-
-		public override TagCompound Save()
-		{
-			TagCompound tag = new TagCompound();
-			if (Module != null)
-			{
-				tag["Module"] = new TagCompound
-				{
-					["Type"] = Module.GetType().AssemblyQualifiedName,
-					["Data"] = Module.Save()
-				};
-			}
-
-			return tag;
-		}
-
-		public override void Load(TagCompound tag)
-		{
-			if (tag.ContainsKey("Module"))
-			{
-				TagCompound module = tag.GetCompound("Module");
-				Module = (BaseModule)Activator.CreateInstance(Type.GetType(module.GetString("Type")));
-				Module.Parent = this;
-				Module.Load(module.GetCompound("Data"));
-			}
-		}
+		#endregion
 	}
 }

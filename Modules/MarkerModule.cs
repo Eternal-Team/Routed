@@ -23,11 +23,11 @@ namespace Routed.Modules
 
 		public abstract bool Check(Item item);
 
-		public virtual TagCompound Save() => new TagCompound();
-
 		public virtual void Load(TagCompound tag)
 		{
 		}
+
+		public virtual TagCompound Save() => new TagCompound();
 	}
 
 	public class AnyItemsMode : FilterMode
@@ -44,13 +44,10 @@ namespace Routed.Modules
 	{
 		public Mod mod;
 
-		public override TagCompound Save()
+		public override bool Check(Item item)
 		{
-			if (mod == null) return new TagCompound();
-			return new TagCompound
-			{
-				["Mod"] = mod.Name
-			};
+			if (item.modItem == null) return false;
+			return item.modItem.mod == mod;
 		}
 
 		public override void Load(TagCompound tag)
@@ -58,10 +55,13 @@ namespace Routed.Modules
 			if (tag.ContainsKey("Mod")) mod = ModLoader.GetMod(tag.GetString("Mod"));
 		}
 
-		public override bool Check(Item item)
+		public override TagCompound Save()
 		{
-			if (item.modItem == null) return false;
-			return item.modItem.mod == mod;
+			if (mod == null) return new TagCompound();
+			return new TagCompound
+			{
+				["Mod"] = mod.Name
+			};
 		}
 	}
 
@@ -117,30 +117,22 @@ namespace Routed.Modules
 	{
 		public List<int> whitelist = new List<int> { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-		public override TagCompound Save() => new TagCompound
-		{
-			["Whitelist"] = whitelist
-		};
+		public override bool Check(Item item) => whitelist.Contains(item.type);
 
 		public override void Load(TagCompound tag)
 		{
 			whitelist = tag.GetList<int>("Whitelist").ToList();
 		}
 
-		public override bool Check(Item item) => whitelist.Contains(item.type);
+		public override TagCompound Save() => new TagCompound
+		{
+			["Whitelist"] = whitelist
+		};
 	}
 	#endregion
 
 	public class MarkerModule : BaseModule, IHasUI
 	{
-		public Guid UUID { get; set; }
-		public BaseUIPanel UI { get; set; }
-		public LegacySoundStyle CloseSound => SoundID.Item1;
-		public LegacySoundStyle OpenSound => SoundID.Item1;
-
-		// todo: fix this
-		public override int DropItem => ModContent.ItemType<Items.MarkerModule>();
-
 		public FilterMode Mode;
 
 		public MarkerModule()
@@ -148,22 +140,23 @@ namespace Routed.Modules
 			UUID = Guid.NewGuid();
 		}
 
+		// todo: fix this
+		public override int DropItem => ModContent.ItemType<Items.MarkerModule>();
+		public Guid UUID { get; set; }
+		public BaseUIPanel UI { get; set; }
+		public LegacySoundStyle CloseSound => SoundID.Item1;
+		public LegacySoundStyle OpenSound => SoundID.Item1;
+
+		public override void Draw(SpriteBatch spriteBatch)
+		{
+			Vector2 position = Parent.Position.ToScreenCoordinates(false);
+			spriteBatch.Draw(ModContent.GetTexture("Routed/Textures/Modules/MarkerModule"), position, Color.White);
+		}
+
 		public override ItemHandler GetHandler()
 		{
 			if (Utility.TryGetTileEntity(Parent.Position, out ModTileEntity te) && te is IItemHandler handler) return handler.Handler;
 			return null;
-		}
-
-		public override bool IsItemValid(Item item) => Mode.Check(item);
-
-		public override void OnPlace(BaseModuleItem item)
-		{
-			if (item is Items.MarkerModule module)
-			{
-				Type t = Routed.markerModules[module.Mode];
-				Mode = (FilterMode)Activator.CreateInstance(t);
-				Mode.Module = this;
-			}
 		}
 
 		public override bool Interact()
@@ -173,15 +166,7 @@ namespace Routed.Modules
 			return true;
 		}
 
-		public override TagCompound Save() => new TagCompound
-		{
-			["UUID"] = UUID,
-			["Mode"] = new TagCompound
-			{
-				["Name"] = Mode.GetType().AssemblyQualifiedName,
-				["Data"] = Mode.Save()
-			}
-		};
+		public override bool IsItemValid(Item item) => Mode.Check(item);
 
 		public override void Load(TagCompound tag)
 		{
@@ -198,10 +183,24 @@ namespace Routed.Modules
 			}
 		}
 
-		public override void Draw(SpriteBatch spriteBatch)
+		public override void OnPlace(BaseModuleItem item)
 		{
-			Vector2 position = Parent.Position.ToScreenCoordinates(false);
-			spriteBatch.Draw(ModContent.GetTexture("Routed/Textures/Modules/MarkerModule"), position, Color.White);
+			if (item is Items.MarkerModule module)
+			{
+				Type t = Routed.markerModules[module.Mode];
+				Mode = (FilterMode)Activator.CreateInstance(t);
+				Mode.Module = this;
+			}
 		}
+
+		public override TagCompound Save() => new TagCompound
+		{
+			["UUID"] = UUID,
+			["Mode"] = new TagCompound
+			{
+				["Name"] = Mode.GetType().AssemblyQualifiedName,
+				["Data"] = Mode.Save()
+			}
+		};
 	}
 }

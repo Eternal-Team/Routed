@@ -12,13 +12,12 @@ namespace Routed.Layer
 {
 	public class NetworkItem
 	{
+		public const int speed = 20;
+		public Point16 CurrentPosition;
 		public Item item;
 
 		public Stack<Point16> path;
-		public Point16 CurrentPosition;
 		public Point16 PreviousPosition;
-
-		public const int speed = 20;
 		public int timer = speed;
 
 		public NetworkItem(Item item, Stack<Point16> path)
@@ -34,6 +33,13 @@ namespace Routed.Layer
 			CurrentPosition = PreviousPosition = tag.Get<Point16>("Position");
 			path = Pathfinding.FindPath(network.Tiles, CurrentPosition, tag.Get<Point16>("Destination"));
 		}
+
+		public TagCompound Save() => new TagCompound
+		{
+			["Item"] = item,
+			["Position"] = CurrentPosition,
+			["Destination"] = path.Count == 0 ? CurrentPosition : path.Last()
+		};
 
 		public void Update()
 		{
@@ -70,12 +76,5 @@ namespace Routed.Layer
 				timer = 0;
 			}
 		}
-
-		public TagCompound Save() => new TagCompound
-		{
-			["Item"] = item,
-			["Position"] = CurrentPosition,
-			["Destination"] = path.Count == 0 ? CurrentPosition : path.Last()
-		};
 	}
 }

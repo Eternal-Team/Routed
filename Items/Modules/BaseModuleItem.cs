@@ -8,11 +8,20 @@ using Terraria.ModLoader;
 namespace Routed.Items
 {
 	public abstract class BaseModuleItem : BaseItem
-	{
-	}
+	{}
 
 	public abstract class BaseModuleItem<T> : BaseModuleItem where T : BaseModule, new()
 	{
+		public override bool AltFunctionUse(Player player) => true;
+
+		public override bool ConsumeItem(Player player)
+		{
+			if (player.altFunctionUse == 2) ModContent.GetInstance<Routed>().RoutedLayer.RemoveModule();
+			else return ModContent.GetInstance<Routed>().RoutedLayer.PlaceModule(this);
+
+			return false;
+		}
+
 		public override void SetDefaults()
 		{
 			item.width = 12;
@@ -25,16 +34,6 @@ namespace Routed.Items
 			item.consumable = true;
 			item.useTurn = true;
 			item.autoReuse = true;
-		}
-
-		public override bool AltFunctionUse(Player player) => true;
-
-		public override bool ConsumeItem(Player player)
-		{
-			if (player.altFunctionUse == 2) ModContent.GetInstance<Routed>().RoutedLayer.RemoveModule();
-			else return ModContent.GetInstance<Routed>().RoutedLayer.PlaceModule(this);
-
-			return false;
 		}
 
 		public override bool UseItem(Player player)

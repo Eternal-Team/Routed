@@ -15,18 +15,8 @@ namespace Routed
 {
 	public class Routed : Mod
 	{
-		public RoutedLayer RoutedLayer;
 		public static Dictionary<string, Type> markerModules;
-
-		public override void Load()
-		{
-			RoutedLayer = new RoutedLayer();
-			markerModules = new Dictionary<string, Type>();
-
-			if (!Main.dedServ) MouseEvents.ButtonPressed += args => args.Button == MouseButton.Right && RoutedLayer.Interact();
-
-			EmitDynamicItems();
-		}
+		public RoutedLayer RoutedLayer;
 
 		// todo: tooltips
 		public void EmitDynamicItems()
@@ -54,6 +44,16 @@ namespace Routed
 				AddItem(name, (ModItem)Activator.CreateInstance(dynamicType));
 				markerModules.Add(mode, type);
 			}
+		}
+
+		public override void Load()
+		{
+			RoutedLayer = new RoutedLayer();
+			markerModules = new Dictionary<string, Type>();
+
+			if (!Main.dedServ) MouseEvents.ButtonPressed += args => args.Button == MouseButton.Right && RoutedLayer.Interact();
+
+			EmitDynamicItems();
 		}
 
 		public override void Unload() => this.UnloadNullableTypes();

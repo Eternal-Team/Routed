@@ -13,6 +13,13 @@ namespace Routed.Layer
 	{
 		public override int TileSize => 1;
 
+		public override void Draw(SpriteBatch spriteBatch)
+		{
+			base.Draw(spriteBatch);
+
+			foreach (RoutedNetwork network in RoutedNetwork.Networks) network.Draw(spriteBatch);
+		}
+
 		public override bool Interact()
 		{
 			if (Main.LocalPlayer.HeldItem.modItem is BasicDuct) return false;
@@ -20,8 +27,6 @@ namespace Routed.Layer
 
 			return TryGetValue(Player.tileTargetX, Player.tileTargetY, out Duct duct) && duct.Interact();
 		}
-
-		public override List<TagCompound> Save() => RoutedNetwork.Networks.Select(network => network.Save()).ToList();
 
 		public override void Load(List<TagCompound> list)
 		{
@@ -104,18 +109,13 @@ namespace Routed.Layer
 			}
 		}
 
+		public override List<TagCompound> Save() => RoutedNetwork.Networks.Select(network => network.Save()).ToList();
+
 		public override void Update()
 		{
 			base.Update();
 
 			foreach (RoutedNetwork network in RoutedNetwork.Networks) network.Update();
-		}
-
-		public override void Draw(SpriteBatch spriteBatch)
-		{
-			base.Draw(spriteBatch);
-
-			foreach (RoutedNetwork network in RoutedNetwork.Networks) network.Draw(spriteBatch);
 		}
 	}
 }

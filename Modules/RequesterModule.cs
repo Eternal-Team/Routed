@@ -14,6 +14,13 @@ namespace Routed.Modules
 {
 	public class RequesterModule : BaseModule, IHasUI, IItemHandler
 	{
+		public RequesterModule()
+		{
+			UUID = Guid.NewGuid();
+
+			Handler = new ItemHandler(18);
+		}
+
 		public override int DropItem => ModContent.ItemType<Items.RequesterModule>();
 
 		public Guid UUID { get; set; }
@@ -23,20 +30,13 @@ namespace Routed.Modules
 
 		public ItemHandler Handler { get; }
 
-		public RequesterModule()
-		{
-			UUID = Guid.NewGuid();
-
-			Handler = new ItemHandler(18);
-		}
-
-		public override ItemHandler GetHandler() => Handler;
-
 		public override void Draw(SpriteBatch spriteBatch)
 		{
 			Vector2 position = Parent.Position.ToScreenCoordinates(false);
 			spriteBatch.Draw(ModContent.GetTexture("Routed/Textures/Modules/RequesterModule"), position, Color.White);
 		}
+
+		public override ItemHandler GetHandler() => Handler;
 
 		public override bool Interact()
 		{
@@ -45,16 +45,16 @@ namespace Routed.Modules
 			return true;
 		}
 
-		public override TagCompound Save() => new TagCompound
-		{
-			["UUID"] = UUID,
-			["Items"] = Handler.Save()
-		};
-
 		public override void Load(TagCompound tag)
 		{
 			UUID = tag.Get<Guid>("UUID");
 			Handler.Load(tag.GetCompound("Items"));
 		}
+
+		public override TagCompound Save() => new TagCompound
+		{
+			["UUID"] = UUID,
+			["Items"] = Handler.Save()
+		};
 	}
 }

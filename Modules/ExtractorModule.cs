@@ -3,16 +3,28 @@ using ContainerLibrary;
 using LayerLibrary;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Routed.Items;
 using Routed.Layer;
 using System.Linq;
 using Terraria;
 using Terraria.ModLoader;
+using Terraria.ModLoader.IO;
 
 namespace Routed.Modules
 {
 	public class ExtractorModule : BaseModule
 	{
+		private int ExtractionSpeed;
+		private int ItemsPerExtraction;
+
+		private int timer;
 		public override int DropItem => ModContent.ItemType<Items.ExtractorModule>();
+
+		public override void Draw(SpriteBatch spriteBatch)
+		{
+			Vector2 position = Parent.Position.ToScreenCoordinates(false);
+			spriteBatch.Draw(ModContent.GetTexture("Routed/Textures/Modules/ExtractorModule"), position, Color.White);
+		}
 
 		public override ItemHandler GetHandler()
 		{
@@ -20,12 +32,30 @@ namespace Routed.Modules
 			return null;
 		}
 
-		private int timer;
-		private int maxTimer = 30;
+		public override void Load(TagCompound tag)
+		{
+			ExtractionSpeed = tag.GetInt("ExtractionSpeed");
+			ItemsPerExtraction = tag.GetInt("ItemsPerExtraction");
+		}
+
+		public override void OnPlace(BaseModuleItem item)
+		{
+			if (item is Items.ExtractorModule module)
+			{
+				ExtractionSpeed = module.ExtractionSpeed;
+				ItemsPerExtraction = module.ItemsPerExtraction;
+			}
+		}
+
+		public override TagCompound Save() => new TagCompound
+		{
+			["ExtractionSpeed"] = ExtractionSpeed,
+			["ItemsPerExtraction"] = ItemsPerExtraction
+		};
 
 		public override void Update()
 		{
-			if (timer++ < maxTimer) return;
+			if (timer++ < ExtractionSpeed) return;
 			timer = 0;
 
 			ItemHandler handler = GetHandler();
@@ -37,7 +67,7 @@ namespace Routed.Modules
 			{
 				if (handler.Items[i] == null || handler.Items[i].IsAir) continue;
 
-				Item item = handler.ExtractItem(i, 10);
+				Item item = handler.ExtractItem(i, ItemsPerExtraction);
 				MarkerModule module = Parent.Network.MarkerModules.FirstOrDefault(markerModule => markerModule.GetHandler() != null && markerModule.IsItemValid(item));
 				if (module != null)
 				{
@@ -47,12 +77,6 @@ namespace Routed.Modules
 
 				handler.InsertItem(ref item);
 			}
-		}
-
-		public override void Draw(SpriteBatch spriteBatch)
-		{
-			Vector2 position = Parent.Position.ToScreenCoordinates(false);
-			spriteBatch.Draw(ModContent.GetTexture("Routed/Textures/Modules/ExtractorModule"), position, Color.White);
 		}
 	}
 }
