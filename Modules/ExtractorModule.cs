@@ -35,6 +35,8 @@ namespace Routed.Modules
 
 			for (int i = 0; i < handler.Slots; i++)
 			{
+				if (handler.Items[i] == null || handler.Items[i].IsAir) continue;
+
 				Item item = handler.ExtractItem(i, 10);
 				MarkerModule module = Parent.Network.MarkerModules.FirstOrDefault(markerModule => markerModule.GetHandler() != null && markerModule.IsItemValid(item));
 				if (module != null)
