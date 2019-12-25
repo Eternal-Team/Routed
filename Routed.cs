@@ -3,6 +3,7 @@ using BaseLibrary.Input;
 using Routed.Layer;
 using Routed.Modules;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -15,10 +16,12 @@ namespace Routed
 	public class Routed : Mod
 	{
 		public RoutedLayer RoutedLayer;
+		public static Dictionary<string, Type> markerModules;
 
 		public override void Load()
 		{
 			RoutedLayer = new RoutedLayer();
+			markerModules = new Dictionary<string, Type>();
 
 			if (!Main.dedServ) MouseEvents.ButtonPressed += args => args.Button == MouseButton.Right && RoutedLayer.Interact();
 
@@ -44,11 +47,11 @@ namespace Routed
 				ILGenerator ilGetMode = methodGetMode.GetILGenerator();
 				ilGetMode.Emit(OpCodes.Ldstr, mode);
 				ilGetMode.Emit(OpCodes.Ret);
-
 				builder.DefineMethodOverride(methodGetMode, typeof(Items.MarkerModule).GetMethod("get_Mode", Utility.defaultFlags));
 
 				Type dynamicType = builder.CreateType();
 				AddItem(name, (ModItem)Activator.CreateInstance(dynamicType));
+				markerModules.Add(mode, type);
 			}
 		}
 

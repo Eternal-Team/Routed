@@ -7,6 +7,7 @@ using Routed.Items;
 using Routed.Layer;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
@@ -15,34 +16,22 @@ using Terraria.ModLoader.IO;
 
 namespace Routed.Modules
 {
+	#region Modes
 	public abstract class FilterMode
 	{
 		public BaseModule Module;
 
-		protected FilterMode()
-		{
-		}
-
-		public FilterMode(BaseModule module)
-		{
-			Module = module;
-		}
-
 		public abstract bool Check(Item item);
+
+		public virtual TagCompound Save() => new TagCompound();
+
+		public virtual void Load(TagCompound tag)
+		{
+		}
 	}
 
-	// basically default route
 	public class AnyItemsMode : FilterMode
 	{
-		public AnyItemsMode()
-		{
-		}
-
-		public AnyItemsMode(BaseModule module)
-		{
-			Module = module;
-		}
-
 		public override bool Check(Item item) => true;
 	}
 
@@ -54,12 +43,6 @@ namespace Routed.Modules
 	public class ModBasedMode : FilterMode
 	{
 		public Mod mod;
-
-		public ModBasedMode(BaseModule module, Mod mod)
-		{
-			Module = module;
-			this.mod = mod;
-		}
 
 		public override bool Check(Item item)
 		{
@@ -118,16 +101,21 @@ namespace Routed.Modules
 
 	public class FilteredItemsMode : FilterMode
 	{
-		private List<int> whitelist;
+		public List<int> whitelist = new List<int> { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-		public FilteredItemsMode(BaseModule module, List<int> whitelist)
+		public override TagCompound Save() => new TagCompound
 		{
-			Module = module;
-			this.whitelist = whitelist;
+			["Whitelist"] = whitelist
+		};
+
+		public override void Load(TagCompound tag)
+		{
+			whitelist = tag.GetList<int>("Whitelist").ToList();
 		}
 
 		public override bool Check(Item item) => whitelist.Contains(item.type);
 	}
+	#endregion
 
 	public class MarkerModule : BaseModule, IHasUI
 	{
@@ -143,7 +131,6 @@ namespace Routed.Modules
 		public MarkerModule()
 		{
 			UUID = Guid.NewGuid();
-			Mode = new AnyItemsMode(this);
 		}
 
 		public override ItemHandler GetHandler()
@@ -156,7 +143,12 @@ namespace Routed.Modules
 
 		public override void OnPlace(BaseModuleItem item)
 		{
-			//if (item is Items.MarkerModule a) Mode = a.Mode;
+			if (item is Items.MarkerModule module)
+			{
+				Type t = Routed.markerModules[module.Mode];
+				Mode = (FilterMode)Activator.CreateInstance(t);
+				Mode.Module = this;
+			}
 		}
 
 		public override bool Interact()
@@ -169,18 +161,31 @@ namespace Routed.Modules
 		public override TagCompound Save() => new TagCompound
 		{
 			["UUID"] = UUID,
-			["Mode"] = Mode.GetType().AssemblyQualifiedName
+			["Mode"] = new TagCompound
+			{
+				["Name"] = Mode.GetType().AssemblyQualifiedName,
+				["Data"] = Mode.Save()
+			}
 		};
 
 		public override void Load(TagCompound tag)
 		{
 			UUID = tag.Get<Guid>("UUID");
-
-			Type type = Type.GetType(tag.GetString("Mode"));
-			if (type != null)
+			try
 			{
-				Mode = (FilterMode)Activator.CreateInstance(type);
-				Mode.Module = this;
+				TagCompound mode = tag.GetCompound("Mode");
+
+
+				Type type = Type.GetType(mode.GetString("Name"));
+				if (type != null)
+				{
+					Mode = (FilterMode)Activator.CreateInstance(type);
+					Mode.Module = this;
+					Mode.Load(mode.GetCompound("Data"));
+				}
+			}
+			catch
+			{
 			}
 		}
 
