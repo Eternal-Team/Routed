@@ -35,8 +35,16 @@ namespace Routed.UI
 			};
 			Append(textLabel);
 
-			var enumerable = ModContent.GetInstance<Routed>().Code.GetTypes().Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(FilterMode)));
+			switch (Container.Mode)
+			{
+				case AnyItemsMode _:
+					break;
+				case InInvMode _:
+					break;
+			}
 
+			var enumerable = ModContent.GetInstance<Routed>().Code.GetTypes().Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(FilterMode)));
+			
 			UIGrid<UIText> grid = new UIGrid<UIText>
 			{
 				Width = (0, 1),
@@ -56,17 +64,14 @@ namespace Routed.UI
 				};
 				text.OnClick += (evt, element) =>
 				{
-					Container.mode = (FilterMode)Activator.CreateInstance(type);
-					Container.mode.Module = Container;
+					Container.Mode = (FilterMode)Activator.CreateInstance(type);
+					Container.Mode.Module = Container;
 
 					grid.Items.ForEach(uiText => uiText.TextColor = Color.White);
 					text.TextColor = Color.Green;
 				};
 				grid.Add(text);
 			}
-
-			// mode switch - dropdown menu of some sorts would be the best
-			// custom elements based on mode -> item wl/bl, mod selection, ...
 		}
 	}
 }

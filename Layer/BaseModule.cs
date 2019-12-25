@@ -1,5 +1,6 @@
 ﻿using ContainerLibrary;
 using Microsoft.Xna.Framework.Graphics;
+using Routed.Items;
 using Terraria;
 using Terraria.ModLoader.IO;
 
@@ -28,6 +29,10 @@ namespace Routed.Layer
 		public virtual TagCompound Save() => new TagCompound();
 
 		public virtual void Load(TagCompound tag)
+		{
+		}
+
+		public virtual void OnPlace(BaseModuleItem item)
 		{
 		}
 	}

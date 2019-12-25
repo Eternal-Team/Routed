@@ -69,6 +69,8 @@ namespace Routed.Layer
 			if (TryGetValue(Player.tileTargetX, Player.tileTargetY, out Duct duct) && duct.Module == null)
 			{
 				duct.Module = new T { Parent = duct };
+				duct.Module.OnPlace(item);
+				
 				return true;
 			}
 

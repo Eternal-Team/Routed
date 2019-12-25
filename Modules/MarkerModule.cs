@@ -3,6 +3,7 @@ using BaseLibrary.UI;
 using ContainerLibrary;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Routed.Items;
 using Routed.Layer;
 using System;
 using System.Collections.Generic;
@@ -33,7 +34,9 @@ namespace Routed.Modules
 	// basically default route
 	public class AnyItemsMode : FilterMode
 	{
-		public AnyItemsMode() { }
+		public AnyItemsMode()
+		{
+		}
 
 		public AnyItemsMode(BaseModule module)
 		{
@@ -135,12 +138,12 @@ namespace Routed.Modules
 
 		public override int DropItem => ModContent.ItemType<Items.MarkerModule>();
 
-		public FilterMode mode;
+		public FilterMode Mode;
 
 		public MarkerModule()
 		{
 			UUID = Guid.NewGuid();
-			mode = new AnyItemsMode(this);
+			Mode = new AnyItemsMode(this);
 		}
 
 		public override ItemHandler GetHandler()
@@ -149,7 +152,12 @@ namespace Routed.Modules
 			return null;
 		}
 
-		public override bool IsItemValid(Item item) => mode.Check(item);
+		public override bool IsItemValid(Item item) => Mode.Check(item);
+
+		public override void OnPlace(BaseModuleItem item)
+		{
+			if (item is Items.MarkerModule a) Mode = a.Mode;
+		}
 
 		public override bool Interact()
 		{
@@ -161,14 +169,14 @@ namespace Routed.Modules
 		public override TagCompound Save() => new TagCompound
 		{
 			["UUID"] = UUID,
-			["Mode"] = mode.GetType().AssemblyQualifiedName
+			["Mode"] = Mode.GetType().AssemblyQualifiedName
 		};
 
 		public override void Load(TagCompound tag)
 		{
 			UUID = tag.Get<Guid>("UUID");
-			mode = (FilterMode)Activator.CreateInstance(Type.GetType(tag.GetString("Mode")));
-			mode.Module = this;
+			Mode = (FilterMode)Activator.CreateInstance(Type.GetType(tag.GetString("Mode")));
+			Mode.Module = this;
 		}
 
 		public override void Draw(SpriteBatch spriteBatch)
