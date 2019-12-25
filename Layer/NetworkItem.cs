@@ -49,7 +49,7 @@ namespace Routed.Layer
 
 				if (path.Count == 0)
 				{
-					if (ModContent.GetInstance<Routed>().RoutedLayer.TryGetValue(CurrentPosition, out Duct duct))
+					if (ModContent.GetInstance<Routed>().RoutedLayer.TryGetValue(CurrentPosition, out Duct duct) && duct.Module != null)
 					{
 						BaseModule module = duct.Module;
 						ItemHandler handler = module.GetHandler();

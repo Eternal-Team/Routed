@@ -13,7 +13,6 @@ namespace Routed.UI
 	{
 		public override void OnInitialize()
 		{
-			// todo: conditional width and height
 			Width = (408, 0);
 			Height = (172, 0);
 			this.Center();
