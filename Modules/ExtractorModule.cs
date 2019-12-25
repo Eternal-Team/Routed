@@ -33,7 +33,7 @@ namespace Routed.Modules
 					case 1000:
 						return ModContent.ItemType<EliteExtractorModule>();
 					default:
-						throw new NotImplementedException();
+						return 0;
 				}
 			}
 		}
@@ -86,7 +86,14 @@ namespace Routed.Modules
 				if (handler.Items[i] == null || handler.Items[i].IsAir) continue;
 
 				Item item = handler.ExtractItem(i, ItemsPerExtraction);
-				MarkerModule module = Parent.Network.MarkerModules.FirstOrDefault(markerModule => markerModule.GetHandler() != null && markerModule.IsItemValid(item));
+				
+				MarkerModule module = Parent.Network.MarkerModules.FirstOrDefault(markerModule =>
+				{
+					ItemHandler handler = markerModule.GetHandler();
+					if (handler == null) return false;
+					return handler.HasSpace(item) && markerModule.IsItemValid(item);
+				});
+				
 				if (module != null)
 				{
 					Parent.Network.NetworkItems.Add(new NetworkItem(item, Pathfinding.FindPath(Parent.Network.Tiles, Parent.Position, module.Parent.Position)));
