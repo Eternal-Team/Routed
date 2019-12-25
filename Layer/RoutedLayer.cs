@@ -70,7 +70,7 @@ namespace Routed.Layer
 			{
 				duct.Module = new T { Parent = duct };
 				duct.Module.OnPlace(item);
-				
+
 				return true;
 			}
 

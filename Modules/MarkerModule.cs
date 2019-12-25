@@ -46,7 +46,7 @@ namespace Routed.Modules
 		public override bool Check(Item item) => true;
 	}
 
-	public class InInvMode : FilterMode
+	public class InInventoryMode : FilterMode
 	{
 		public override bool Check(Item item) => Module.GetHandler().Contains(item.type);
 	}
@@ -156,7 +156,7 @@ namespace Routed.Modules
 
 		public override void OnPlace(BaseModuleItem item)
 		{
-			if (item is Items.MarkerModule a) Mode = a.Mode;
+			//if (item is Items.MarkerModule a) Mode = a.Mode;
 		}
 
 		public override bool Interact()
@@ -175,8 +175,13 @@ namespace Routed.Modules
 		public override void Load(TagCompound tag)
 		{
 			UUID = tag.Get<Guid>("UUID");
-			Mode = (FilterMode)Activator.CreateInstance(Type.GetType(tag.GetString("Mode")));
-			Mode.Module = this;
+
+			Type type = Type.GetType(tag.GetString("Mode"));
+			if (type != null)
+			{
+				Mode = (FilterMode)Activator.CreateInstance(type);
+				Mode.Module = this;
+			}
 		}
 
 		public override void Draw(SpriteBatch spriteBatch)

@@ -39,12 +39,12 @@ namespace Routed.UI
 			{
 				case AnyItemsMode _:
 					break;
-				case InInvMode _:
+				case InInventoryMode _:
 					break;
 			}
 
 			var enumerable = ModContent.GetInstance<Routed>().Code.GetTypes().Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(FilterMode)));
-			
+
 			UIGrid<UIText> grid = new UIGrid<UIText>
 			{
 				Width = (0, 1),
