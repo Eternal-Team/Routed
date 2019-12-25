@@ -21,8 +21,6 @@ namespace Routed.Layer
 			return TryGetValue(Player.tileTargetX, Player.tileTargetY, out Duct duct) && duct.Interact();
 		}
 
-		public Dictionary<Point16, Duct> a => data;
-
 		public override List<TagCompound> Save() => RoutedNetwork.Networks.Select(network => network.Save()).ToList();
 
 		public override void Load(List<TagCompound> list)
@@ -110,10 +108,7 @@ namespace Routed.Layer
 		{
 			base.Update();
 
-			foreach (RoutedNetwork network in RoutedNetwork.Networks)
-			{
-				network.Update();
-			}
+			foreach (RoutedNetwork network in RoutedNetwork.Networks) network.Update();
 		}
 
 		public override void Draw(SpriteBatch spriteBatch)

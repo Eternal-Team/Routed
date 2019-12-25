@@ -21,7 +21,7 @@ namespace Routed.Modules
 		}
 
 		private int timer;
-		private const int maxTimer = 30;
+		private int maxTimer = 30;
 
 		public override void Update()
 		{

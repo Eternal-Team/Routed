@@ -44,6 +44,20 @@ namespace Routed.Modules
 	{
 		public Mod mod;
 
+		public override TagCompound Save()
+		{
+			if (mod == null) return new TagCompound();
+			return new TagCompound
+			{
+				["Mod"] = mod.Name
+			};
+		}
+
+		public override void Load(TagCompound tag)
+		{
+			if (tag.ContainsKey("Mod")) mod = ModLoader.GetMod(tag.GetString("Mod"));
+		}
+
 		public override bool Check(Item item)
 		{
 			if (item.modItem == null) return false;
@@ -124,6 +138,7 @@ namespace Routed.Modules
 		public LegacySoundStyle CloseSound => SoundID.Item1;
 		public LegacySoundStyle OpenSound => SoundID.Item1;
 
+		// todo: fix this
 		public override int DropItem => ModContent.ItemType<Items.MarkerModule>();
 
 		public FilterMode Mode;
@@ -171,21 +186,15 @@ namespace Routed.Modules
 		public override void Load(TagCompound tag)
 		{
 			UUID = tag.Get<Guid>("UUID");
-			try
-			{
-				TagCompound mode = tag.GetCompound("Mode");
 
+			TagCompound mode = tag.GetCompound("Mode");
 
-				Type type = Type.GetType(mode.GetString("Name"));
-				if (type != null)
-				{
-					Mode = (FilterMode)Activator.CreateInstance(type);
-					Mode.Module = this;
-					Mode.Load(mode.GetCompound("Data"));
-				}
-			}
-			catch
+			Type type = Type.GetType(mode.GetString("Name"));
+			if (type != null)
 			{
+				Mode = (FilterMode)Activator.CreateInstance(type);
+				Mode.Module = this;
+				Mode.Load(mode.GetCompound("Data"));
 			}
 		}
 

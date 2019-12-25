@@ -28,6 +28,7 @@ namespace Routed
 			EmitDynamicItems();
 		}
 
+		// todo: tooltips
 		public void EmitDynamicItems()
 		{
 			const MethodAttributes PropertyOverrideAttributes = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Virtual;
