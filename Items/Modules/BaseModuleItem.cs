@@ -8,7 +8,8 @@ using Terraria.ModLoader;
 namespace Routed.Items
 {
 	public abstract class BaseModuleItem : BaseItem
-	{}
+	{
+	}
 
 	public abstract class BaseModuleItem<T> : BaseModuleItem where T : BaseModule, new()
 	{

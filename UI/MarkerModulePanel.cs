@@ -3,7 +3,9 @@ using BaseLibrary.UI;
 using BaseLibrary.UI.Elements;
 using Microsoft.Xna.Framework;
 using Routed.Modules;
+using System.Collections.Generic;
 using Terraria;
+using Terraria.ModLoader;
 
 namespace Routed.UI
 {
@@ -36,10 +38,6 @@ namespace Routed.UI
 
 			switch (Container.Mode)
 			{
-				case AnyItemsMode _:
-					break;
-				case InInventoryMode _:
-					break;
 				case FilteredItemsMode mode:
 				{
 					UIGrid<UIConsumerSlot> grid = new UIGrid<UIConsumerSlot>(9)
@@ -65,6 +63,64 @@ namespace Routed.UI
 
 					break;
 				}
+				case ModBasedMode mode:
+				{
+					UIGrid<UIModItem> grid = new UIGrid<UIModItem>
+					{
+						Width = (0, 1),
+						Height = (-28, 1),
+						Top = (28, 0)
+					};
+					Append(grid);
+
+					foreach (Mod mod in ModLoader.Mods)
+					{
+						if (mod.GetValue<Dictionary<string, ModItem>>("items").Count <= 0) continue;
+
+						UIModItem item = new UIModItem(mod)
+						{
+							Width = (0, 1),
+							Height = (24, 0),
+							TextColor = mode.mod == mod ? Color.LimeGreen : Color.White
+						};
+						item.OnClick += (evt, element) =>
+						{
+							mode.mod = mod;
+
+							grid.Items.ForEach(modItem => modItem.TextColor = Color.White);
+							item.TextColor = Color.LimeGreen;
+						};
+						grid.Add(item);
+					}
+
+					break;
+				}
+			}
+		}
+
+		private class UIModItem : BaseElement
+		{
+			private Mod mod;
+			private UIText text;
+
+			public Color TextColor
+			{
+				set => text.TextColor = value;
+			}
+
+			public UIModItem(Mod mod)
+			{
+				this.mod = mod;
+				SetPadding(0);
+
+				text = new UIText(mod.DisplayName)
+				{
+					Width = (0, 1),
+					Height = (0, 1),
+					HorizontalAlignment = HorizontalAlignment.Left,
+					VerticalAlignment = VerticalAlignment.Center
+				};
+				Append(text);
 			}
 		}
 	}
