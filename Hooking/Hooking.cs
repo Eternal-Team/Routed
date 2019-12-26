@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using Routed.Layer;
 using Routed.UI;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,7 @@ namespace Routed
 		private static Dictionary<int, int> existing;
 		private static List<int> indexes;
 		private static Texture2D textureTick;
+		internal static RoutedNetwork Network;
 
 		internal static void Initialize()
 		{
@@ -41,7 +43,28 @@ namespace Routed
 				cursor.Index += 6;
 
 				cursor.Emit(OpCodes.Ldloc, 136);
-				cursor.EmitDelegate<Func<int, bool>>(index => !indexes.Contains(Main.availableRecipe[index]));
+				cursor.EmitDelegate<Func<int, bool>>(index =>
+				{
+					if (indexes.Contains(Main.availableRecipe[index]))
+					{
+						if (Network == null) return false;
+
+						Recipe recipe = Main.recipe[Main.availableRecipe[index]];
+
+						foreach (Item item in recipe.requiredItem)
+						{
+							if (!item.IsAir)
+							{
+								Network.PullItem(item.type, item.stack, (BaseLibrary.BaseLibrary.PanelGUI.Elements.First(panel => panel is RequesterModulePanel) as RequesterModulePanel)?.Container.Parent);
+								Main.NewText($"Requesting {item.HoverName}");
+							}
+						}
+
+						return false;
+					}
+
+					return true;
+				});
 				cursor.Emit(OpCodes.Brfalse, label);
 			}
 
@@ -82,46 +105,6 @@ namespace Routed
 		private static void Recipe_Create(ILContext il)
 		{
 			ILCursor cursor = new ILCursor(il);
-
-			//if (cursor.TryGotoNext(i => i.MatchLdloc(3), i => i.MatchBrfalse(out _)))
-			//{
-			//	cursor.Index++;
-			//	cursor.Remove();
-			//	cursor.Emit(OpCodes.Brfalse, labelAlchemy);
-			//}
-
-			//if (cursor.TryGotoNext(i => i.MatchLdarg(0), i => i.MatchLdfld<Recipe>("alchemy"), i => i.MatchBrfalse(out _)))
-			//{
-			//	cursor.MarkLabel(labelAlchemy);
-
-			//	cursor.Emit(OpCodes.Ldarg, 0);
-			//	cursor.Emit<Recipe>(OpCodes.Ldfld, "alchemy");
-			//	cursor.Emit(OpCodes.Ldloc, 2);
-
-			//	cursor.EmitDelegate<Func<bool, int, int>>((alchemy, amount) =>
-			//	{
-			//		if (alchemy && AlchemyApplyChance())
-			//		{
-			//			int reduction = 0;
-			//			for (int j = 0; j < amount; j++)
-			//			{
-			//				if (Main.rand.Next(AlchemyConsumeChance()) == 0)
-			//					reduction++;
-			//			}
-
-			//			amount -= reduction;
-			//		}
-
-			//		return amount;
-			//	});
-
-			//	cursor.Emit(OpCodes.Stloc, 2);
-			//	cursor.Emit(OpCodes.Br, labelCheckAmount);
-			//}
-
-			//if (cursor.TryGotoNext(i => i.MatchLdloc(2), i => i.MatchLdcI4(0), i => i.MatchBle(out _)))
-			//	cursor.MarkLabel(labelCheckAmount);
-
 
 			if (cursor.TryGotoNext(MoveType.AfterLabel, i => i.MatchLdloc(0), i => i.MatchLdcI4(1), i => i.MatchAdd()))
 			{
@@ -169,26 +152,34 @@ namespace Routed
 
 				cursor.EmitDelegate<Func<Dictionary<int, int>, Dictionary<int, int>>>(availableItems =>
 				{
-					existing = availableItems.ToDictionary(pair => pair.Key, pair => pair.Value);
-					indexes.Clear();
-
 					foreach (UIElement element in BaseLibrary.BaseLibrary.PanelGUI.Elements)
 					{
 						if (element is RequesterModulePanel panel)
 						{
-							// todo: cache
-							foreach (Item item in panel.Container.Parent.Network.MarkerModules.SelectMany(module => module.GetHandler()?.Items))
+							ItemHandler handler = panel.Container.Handler;
+							for (int i = 0; i < handler.Slots; i++)
 							{
-								if (!item.IsAir)
-								{
-									if (availableItems.ContainsKey(item.netID)) availableItems[item.netID] += item.stack;
-									else
-									{
-										availableItems[item.netID] = item.stack;
-									}
-								}
+								Item item = handler.GetItemInSlot(i);
+								if (item.IsAir) continue;
+
+								if (availableItems.ContainsKey(item.netID)) availableItems[item.netID] += item.stack;
+								else availableItems[item.netID] = item.stack;
 							}
 						}
+					}
+
+					existing = availableItems.ToDictionary(pair => pair.Key, pair => pair.Value);
+					indexes.Clear();
+
+					if (Network == null) return availableItems;
+
+					// todo: cache
+					foreach (Item item in Network.MarkerModules.SelectMany(module => module.GetHandler()?.Items))
+					{
+						if (item.IsAir) continue;
+
+						if (availableItems.ContainsKey(item.netID)) availableItems[item.netID] += item.stack;
+						else availableItems[item.netID] = item.stack;
 					}
 
 					return availableItems;
@@ -205,11 +196,7 @@ namespace Routed
 				cursor.EmitDelegate<Action<int>>(index =>
 				{
 					Recipe recipe = Main.recipe[index];
-					if (recipe.requiredItem.Any(item => !item.IsAir && (!existing.ContainsKey(item.netID) || existing[item.netID] < item.stack)))
-					{
-						indexes.Add(index);
-						Main.NewText($"Recipe for {recipe.createItem.HoverName} requiures items from network");
-					}
+					if (recipe.requiredItem.Any(item => !item.IsAir && (!existing.ContainsKey(item.netID) || existing[item.netID] < item.stack))) indexes.Add(index);
 				});
 			}
 		}

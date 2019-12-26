@@ -141,7 +141,6 @@ namespace Routed.Layer
 
 				if (newNetworks.Count <= 1)
 				{
-					Main.NewText(Network.Tiles.Count);
 					Network.Tiles.Remove(this);
 					Network.CheckPaths();
 				}

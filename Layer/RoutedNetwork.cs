@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Routed.Modules;
 using Routed.UI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Terraria;
@@ -85,6 +86,27 @@ namespace Routed.Layer
 			foreach (TagCompound compound in tag.GetList<TagCompound>("NetworkItems"))
 			{
 				NetworkItems.Add(new NetworkItem(compound));
+			}
+		}
+
+		public void PullItem(int type, int count, Duct destination)
+		{
+			foreach (MarkerModule module in MarkerModules)
+			{
+				ItemHandler handler = module.GetHandler();
+				if (handler == null) continue;
+
+				for (int i = 0; i < handler.Slots; i++)
+				{
+					Item item = handler.Items[i];
+					if (item.IsAir || item.type != type) continue;
+
+					int extractedAmount = Math.Min(Math.Min(10, count), item.stack);
+					Item extracted = handler.ExtractItem(i, extractedAmount);
+					PullItem(extracted, module.Parent, destination);
+					count -= extractedAmount;
+					if (count <= 0) return;
+				}
 			}
 		}
 

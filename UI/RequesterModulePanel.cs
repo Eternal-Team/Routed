@@ -24,6 +24,16 @@ namespace Routed.UI
 		public string GetTexture(Item item) => "Routed/Textures/Modules/RequesterModule";
 		private UIGrid<UIRequesterSlot> gridSlots;
 
+		public override void OnActivate()
+		{
+			Hooking.Network = Container.Parent.Network;
+		}
+
+		public override void OnDeactivate()
+		{
+			Hooking.Network = null;
+		}
+
 		public override void OnInitialize()
 		{
 			Width = (8 + (SlotSize + 4) * Columns - 4 + 8 + 28 + 16, 0);
