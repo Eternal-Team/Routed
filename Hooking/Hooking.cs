@@ -34,7 +34,24 @@ namespace Routed
 		private static void Main_DrawInventory(ILContext il)
 		{
 			ILCursor cursor = new ILCursor(il);
-			
+			ILLabel label = cursor.DefineLabel();
+
+			if (cursor.TryGotoNext(MoveType.AfterLabel, i => i.MatchCallvirt<Player>("IsStackingItems"), i => i.MatchBrtrue(out _), i => i.MatchLdsfld<Main>("mouseLeftRelease"), i => i.MatchBrfalse(out _)))
+			{
+				cursor.Index += 6;
+
+				cursor.Emit(OpCodes.Ldloc, 136);
+				cursor.EmitDelegate<Func<int, bool>>(index => !indexes.Contains(Main.availableRecipe[index]));
+				cursor.Emit(OpCodes.Brfalse, label);
+			}
+
+			if (cursor.TryGotoNext(MoveType.AfterLabel, i => i.MatchLdloc(136), i => i.MatchStsfld<Main>("focusRecipe")))
+			{
+				cursor.Index -= 4;
+
+				cursor.MarkLabel(label);
+			}
+
 			if (cursor.TryGotoNext(MoveType.AfterLabel, i => i.MatchCall<ItemSlot>("Draw"), i => i.MatchStsfld<Main>("inventoryBack"), i => i.MatchLdloc(136)))
 			{
 				cursor.Index += 3;
@@ -44,11 +61,7 @@ namespace Routed
 				cursor.Emit(OpCodes.Ldloc, 138);
 				cursor.EmitDelegate<Action<int, int, int>>((index, x, y) =>
 				{
-					//Recipe recipe = Main.recipe[Main.availableRecipe[index]];
-					if (indexes.Contains(Main.availableRecipe[index]))
-					{
-						Main.spriteBatch.Draw(textureTick, new Vector2(x + 6, y + 6), Color.Red);
-					}
+					if (indexes.Contains(Main.availableRecipe[index])) Main.spriteBatch.Draw(textureTick, new Vector2(x + 6, y + 6), Color.Red);
 				});
 			}
 
@@ -61,11 +74,7 @@ namespace Routed
 				cursor.Emit(OpCodes.Ldloc, 169);
 				cursor.EmitDelegate<Action<int, int, int>>((index, x, y) =>
 				{
-					//Recipe recipe = Main.recipe[Main.availableRecipe[index]];
-					if (indexes.Contains(Main.availableRecipe[index]))
-					{
-						Main.spriteBatch.Draw(textureTick, new Vector2(x + 6, y + 6), Color.Red);
-					}
+					if (indexes.Contains(Main.availableRecipe[index])) Main.spriteBatch.Draw(textureTick, new Vector2(x + 6, y + 6), Color.Red);
 				});
 			}
 		}
