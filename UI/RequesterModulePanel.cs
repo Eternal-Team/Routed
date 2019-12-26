@@ -18,11 +18,13 @@ namespace Routed.UI
 	public class RequesterModulePanel : BaseUIPanel<RequesterModule>
 	{
 		private UIGrid<UISlot> gridSlots;
+		private const int Columns = 13;
+		private const int Rows = 6;
 
 		public override void OnInitialize()
 		{
-			Width = (408, 0);
-			Height = (308, 0);
+			Width = (8 + 44 * Columns - 4 + 8 + 28 + 16, 0);
+			Height = (8 + 20 + 8 + 44 * Rows - 4 + 8 + 20 + 8 + 44 * 2 - 4 + 8 + 16, 0);
 			this.Center();
 
 			UITextButton buttonClose = new UITextButton("X")
@@ -38,39 +40,92 @@ namespace Routed.UI
 			UIText textLabel = new UIText("Requester Module")
 			{
 				Width = (0, 1),
-				Height = (20, 0),
 				HorizontalAlignment = HorizontalAlignment.Center
 			};
 			Append(textLabel);
 
-			gridSlots = new UIGrid<UISlot>(9)
+			UIPanel panel = new UIPanel
 			{
 				Top = (28, 0),
 				Width = (0, 1),
-				Height = (128, 0)
+				Height = (44 * Rows - 4, 0),
+				BorderColor = Color.Transparent,
+				BackgroundColor = Utility.ColorPanel_Selected * 0.75f
 			};
-			Append(gridSlots);
+			Append(panel);
 
-			UIText textRequestedItem = new UIText("Requested Items")
+			gridSlots = new UIGrid<UISlot>(Columns)
 			{
-				Width = (0, 1),
-				Top = (180, 0),
-				HorizontalAlignment = HorizontalAlignment.Center
+				Width = (-28, 1),
+				Height = (0, 1)
 			};
-			Append(textRequestedItem);
+			panel.Append(gridSlots);
 
-			UIGrid<UIContainerSlot> gridOutout = new UIGrid<UIContainerSlot>(9)
-			{
-				Top = (164 + 44, 0),
-				Width = (0, 1),
-				Height = (128, 0)
-			};
-			Append(gridOutout);
+			gridSlots.scrollbar.HAlign = 1;
+			gridSlots.scrollbar.Top = (0, 0);
+			gridSlots.scrollbar.Height = (0, 1);
+			panel.Append(gridSlots.scrollbar);
 
-			for (int i = 0; i < Container.Handler.Slots; i++)
+			// requested items
 			{
-				UIContainerSlot slot = new UIContainerSlot(() => Container.Handler, i);
-				gridOutout.Add(slot);
+				UIText textRequestedItem = new UIText("Requested Items")
+				{
+					Width = (44 * 10 - 4, 0),
+					MarginLeft = 8,
+					Top = (28 + 44 * Rows - 4 + 8, 0),
+					HorizontalAlignment = HorizontalAlignment.Center
+				};
+				Append(textRequestedItem);
+
+				panel = new UIPanel
+				{
+					Top = (28 + 44 * Rows - 4 + 8 + 20 + 8, 0),
+					Width = (0, 1),
+					Height = (44 * 2 - 4 + 16, 0),
+					BorderColor = Color.Transparent,
+					BackgroundColor = Utility.ColorPanel_Selected * 0.75f
+				};
+				Append(panel);
+
+				UIGrid<UIContainerSlot> gridOutout = new UIGrid<UIContainerSlot>(10)
+				{
+					Width = (44 * 10 - 4, 0),
+					Height = (0, 1)
+				};
+				panel.Append(gridOutout);
+
+				for (int i = 0; i < Container.Handler.Slots; i++)
+				{
+					UIContainerSlot slot = new UIContainerSlot(() => Container.Handler, i);
+					gridOutout.Add(slot);
+				}
+			}
+
+			// return items
+			{
+				UIText textReturnItems = new UIText("Return")
+				{
+					Width = (44 * 3 - 4, 0),
+					MarginRight = 8,
+					HAlign = 1,
+					Top = (28 + 44 * Rows - 4 + 8, 0),
+					HorizontalAlignment = HorizontalAlignment.Center
+				};
+				Append(textReturnItems);
+
+				UIGrid<UIContainerSlot> gridInput = new UIGrid<UIContainerSlot>(3)
+				{
+					Width = (44 * 3 - 4, 0),
+					Height = (0, 1),
+					HAlign = 1
+				};
+				panel.Append(gridInput);
+
+				for (int i = 0; i < Container.ReturnItems.Slots; i++)
+				{
+					UIContainerSlot slot = new UIContainerSlot(() => Container.ReturnItems, i);
+					gridInput.Add(slot);
+				}
 			}
 
 			PopulateGrid();

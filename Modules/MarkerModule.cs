@@ -81,11 +81,7 @@ namespace Routed.Modules
 
 	public class WeaponsMode : FilterMode
 	{
-		public override bool Check(Item item)
-		{
-			return item.damage > 0 && (!item.notAmmo || item.useStyle > 0) && (item.type < 71 || item.type > 74);
-			//return (item.melee || item.ranged || item.magic || item.summon || item.thrown) && item.damage > 0;
-		}
+		public override bool Check(Item item) => item.damage > 0 && (!item.notAmmo || item.useStyle > 0) && (item.type < 71 || item.type > 74);
 	}
 
 	public class ToolsMode : FilterMode

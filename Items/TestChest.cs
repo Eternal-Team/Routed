@@ -56,6 +56,11 @@ namespace Routed.Items
 			Handler = new ItemHandler(27);
 		}
 
+		public override void OnKill()
+		{
+			Handler.DropItems(new Rectangle(Position.X * 16, Position.Y * 16, 32, 32));
+		}
+
 		public override TagCompound Save() => new TagCompound
 		{
 			["UUID"] = UUID,

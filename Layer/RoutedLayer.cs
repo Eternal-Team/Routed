@@ -104,6 +104,7 @@ namespace Routed.Layer
 
 			if (TryGetValue(posX, posY, out Duct duct) && duct.Module != null)
 			{
+				duct.Module.OnRemove();
 				Item.NewItem(posX * 16, posY * 16, 16, 16, duct.Module.DropItem);
 				duct.Module = null;
 			}

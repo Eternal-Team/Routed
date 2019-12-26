@@ -18,10 +18,13 @@ namespace Routed.Modules
 		{
 			UUID = Guid.NewGuid();
 
-			Handler = new ItemHandler(18);
+			Handler = new ItemHandler(20);
+			ReturnItems=new ItemHandler(6);
 		}
 
 		public override int DropItem => ModContent.ItemType<Items.RequesterModule>();
+
+		public ItemHandler ReturnItems;
 
 		public Guid UUID { get; set; }
 		public BaseUIPanel UI { get; set; }
@@ -38,6 +41,11 @@ namespace Routed.Modules
 
 		public override ItemHandler GetHandler() => Handler;
 
+		public override void OnRemove()
+		{
+			Handler.DropItems(new Rectangle(Parent.Position.X * 16, Parent.Position.Y * 16, 16, 16));
+		}
+
 		public override bool Interact()
 		{
 			BaseLibrary.BaseLibrary.PanelGUI.UI.HandleUI(this);
@@ -49,12 +57,14 @@ namespace Routed.Modules
 		{
 			UUID = tag.Get<Guid>("UUID");
 			Handler.Load(tag.GetCompound("Items"));
+			ReturnItems.Load(tag.GetCompound("ReturnItems"));
 		}
 
 		public override TagCompound Save() => new TagCompound
 		{
 			["UUID"] = UUID,
-			["Items"] = Handler.Save()
+			["Items"] = Handler.Save(),
+			["ReturnItems"] = ReturnItems.Save()
 		};
 	}
 }
