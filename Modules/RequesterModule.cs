@@ -5,7 +5,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Routed.Layer;
 using System;
-using System.Linq;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
@@ -48,27 +47,21 @@ namespace Routed.Modules
 			Handler.DropItems(new Rectangle(Parent.Position.X * 16, Parent.Position.Y * 16, 16, 16));
 		}
 
+		private int timer;
+		private const int maxTimer = 30;
+
 		public override void Update()
 		{
+			if (timer++ < maxTimer) return;
+			timer = 0;
+
 			for (int i = 0; i < ReturnItems.Slots; i++)
 			{
 				if (ReturnItems.Items[i] == null || ReturnItems.Items[i].IsAir) continue;
 
 				Item item = ReturnItems.ExtractItem(i, 10);
 
-				// todo: priority system (eg. weapons will go first to weapons then materials)
-				MarkerModule module = Parent.Network.MarkerModules.LastOrDefault(markerModule =>
-				{
-					ItemHandler other = markerModule.GetHandler();
-					if (other == null) return false;
-					return other.HasSpace(item) && markerModule.IsItemValid(item);
-				});
-
-				if (module != null)
-				{
-					Parent.Network.NetworkItems.Add(new NetworkItem(item, Parent, module.Parent));
-					break;
-				}
+				if (Parent.Network.PushItem(item, Parent)) break;
 
 				ReturnItems.InsertItem(ref item);
 			}
