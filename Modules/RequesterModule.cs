@@ -5,6 +5,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Routed.Layer;
 using System;
+using System.Linq;
+using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -19,7 +21,7 @@ namespace Routed.Modules
 			UUID = Guid.NewGuid();
 
 			Handler = new ItemHandler(20);
-			ReturnItems=new ItemHandler(6);
+			ReturnItems = new ItemHandler(6);
 		}
 
 		public override int DropItem => ModContent.ItemType<Items.RequesterModule>();
@@ -44,6 +46,32 @@ namespace Routed.Modules
 		public override void OnRemove()
 		{
 			Handler.DropItems(new Rectangle(Parent.Position.X * 16, Parent.Position.Y * 16, 16, 16));
+		}
+
+		public override void Update()
+		{
+			for (int i = 0; i < ReturnItems.Slots; i++)
+			{
+				if (ReturnItems.Items[i] == null || ReturnItems.Items[i].IsAir) continue;
+
+				Item item = ReturnItems.ExtractItem(i, 10);
+
+				// todo: priority system (eg. weapons will go first to weapons then materials)
+				MarkerModule module = Parent.Network.MarkerModules.LastOrDefault(markerModule =>
+				{
+					ItemHandler other = markerModule.GetHandler();
+					if (other == null) return false;
+					return other.HasSpace(item) && markerModule.IsItemValid(item);
+				});
+
+				if (module != null)
+				{
+					Parent.Network.NetworkItems.Add(new NetworkItem(item, Parent, module.Parent));
+					break;
+				}
+
+				ReturnItems.InsertItem(ref item);
+			}
 		}
 
 		public override bool Interact()

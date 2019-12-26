@@ -10,6 +10,8 @@ using Terraria.ModLoader.IO;
 
 namespace Routed.Layer
 {
+	// todo: methods for push/pull from network -> update UIs
+
 	public class RoutedNetwork
 	{
 		public static List<RoutedNetwork> Networks = new List<RoutedNetwork>();
