@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿using BaseLibrary;
+using Microsoft.Xna.Framework.Graphics;
 using System.IO;
 using System.Linq;
 using Terraria;
@@ -26,7 +27,7 @@ namespace Routed
 
 		public override void PostDrawTiles()
 		{
-			Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullCounterClockwise, null, Main.GameViewMatrix.ZoomMatrix);
+			Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, Utility.DefaultSamplerState, DepthStencilState.Default, RasterizerState.CullCounterClockwise, null, Main.GameViewMatrix.ZoomMatrix);
 			Routed.RoutedLayer.Draw(Main.spriteBatch);
 			Main.spriteBatch.End();
 		}

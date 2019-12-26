@@ -39,6 +39,16 @@ namespace Routed.Layer
 
 		public List<ExtractorModule> ExtractorModules => Tiles.Select(duct => duct.Module).OfType<ExtractorModule>().ToList();
 
+		public void CheckPaths()
+		{
+			IEnumerable<Point16> tiles = Tiles.Select(duct => duct.Position).ToList();
+
+			foreach (NetworkItem item in NetworkItems.Where(item => item.path.Any(position => !tiles.Contains(position))))
+			{
+				item.path = Pathfinding.FindPath(Routed.RoutedLayer[item.CurrentPosition], item.destination);
+			}
+		}
+
 		public void Draw(SpriteBatch spriteBatch)
 		{
 			foreach (NetworkItem item in NetworkItems)
@@ -78,6 +88,33 @@ namespace Routed.Layer
 			}
 		}
 
+		public void PullItem(Item item, Duct origin, Duct destination)
+		{
+			NetworkItem networkItem = new NetworkItem(item, origin, destination);
+			NetworkItems.Add(networkItem);
+
+			UpdateUIs();
+		}
+
+		public bool PushItem(Item item, Duct origin)
+		{
+			// todo: priority system (eg. weapons will go first to weapons then materials)
+			MarkerModule module = MarkerModules.LastOrDefault(markerModule =>
+			{
+				ItemHandler other = markerModule.GetHandler();
+				if (other == null) return false;
+				return other.HasSpace(item) && markerModule.IsItemValid(item);
+			});
+
+			if (module != null)
+			{
+				NetworkItems.Add(new NetworkItem(item, origin, module.Parent));
+				return true;
+			}
+
+			return false;
+		}
+
 		public TagCompound Save()
 		{
 			return new TagCompound
@@ -101,16 +138,6 @@ namespace Routed.Layer
 			}
 		}
 
-		public void CheckPaths()
-		{
-			IEnumerable<Point16> tiles = Tiles.Select(duct => duct.Position).ToList();
-
-			foreach (NetworkItem item in NetworkItems.Where(item => item.path.Any(position => !tiles.Contains(position))))
-			{
-				item.path = Pathfinding.FindPath(Routed.RoutedLayer[item.CurrentPosition], item.destination);
-			}
-		}
-
 		public void UpdateUIs()
 		{
 			foreach (UIElement element in BaseLibrary.BaseLibrary.PanelGUI.Elements)
@@ -120,33 +147,6 @@ namespace Routed.Layer
 					panel.PopulateGrid();
 				}
 			}
-		}
-
-		public bool PushItem(Item item, Duct origin)
-		{
-			// todo: priority system (eg. weapons will go first to weapons then materials)
-			MarkerModule module = MarkerModules.LastOrDefault(markerModule =>
-			{
-				ItemHandler other = markerModule.GetHandler();
-				if (other == null) return false;
-				return other.HasSpace(item) && markerModule.IsItemValid(item);
-			});
-
-			if (module != null)
-			{
-				NetworkItems.Add(new NetworkItem(item, origin, module.Parent));
-				return true;
-			}
-
-			return false;
-		}
-
-		public void PullItem(Item item, Duct origin, Duct destination)
-		{
-			NetworkItem networkItem = new NetworkItem(item, origin, destination);
-			NetworkItems.Add(networkItem);
-
-			UpdateUIs();
 		}
 	}
 }

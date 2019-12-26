@@ -15,6 +15,12 @@ namespace Routed.Modules
 {
 	public class RequesterModule : BaseModule, IHasUI, IItemHandler
 	{
+		private const int maxTimer = 30;
+
+		public ItemHandler ReturnItems;
+
+		private int timer;
+
 		public RequesterModule()
 		{
 			UUID = Guid.NewGuid();
@@ -24,8 +30,6 @@ namespace Routed.Modules
 		}
 
 		public override int DropItem => ModContent.ItemType<Items.RequesterModule>();
-
-		public ItemHandler ReturnItems;
 
 		public Guid UUID { get; set; }
 		public BaseUIPanel UI { get; set; }
@@ -42,13 +46,31 @@ namespace Routed.Modules
 
 		public override ItemHandler GetHandler() => Handler;
 
+		public override bool Interact()
+		{
+			BaseLibrary.BaseLibrary.PanelGUI.UI.HandleUI(this);
+
+			return true;
+		}
+
+		public override void Load(TagCompound tag)
+		{
+			UUID = tag.Get<Guid>("UUID");
+			Handler.Load(tag.GetCompound("Items"));
+			ReturnItems.Load(tag.GetCompound("ReturnItems"));
+		}
+
 		public override void OnRemove()
 		{
 			Handler.DropItems(new Rectangle(Parent.Position.X * 16, Parent.Position.Y * 16, 16, 16));
 		}
 
-		private int timer;
-		private const int maxTimer = 30;
+		public override TagCompound Save() => new TagCompound
+		{
+			["UUID"] = UUID,
+			["Items"] = Handler.Save(),
+			["ReturnItems"] = ReturnItems.Save()
+		};
 
 		public override void Update()
 		{
@@ -66,26 +88,5 @@ namespace Routed.Modules
 				ReturnItems.InsertItem(ref item);
 			}
 		}
-
-		public override bool Interact()
-		{
-			BaseLibrary.BaseLibrary.PanelGUI.UI.HandleUI(this);
-
-			return true;
-		}
-
-		public override void Load(TagCompound tag)
-		{
-			UUID = tag.Get<Guid>("UUID");
-			Handler.Load(tag.GetCompound("Items"));
-			ReturnItems.Load(tag.GetCompound("ReturnItems"));
-		}
-
-		public override TagCompound Save() => new TagCompound
-		{
-			["UUID"] = UUID,
-			["Items"] = Handler.Save(),
-			["ReturnItems"] = ReturnItems.Save()
-		};
 	}
 }

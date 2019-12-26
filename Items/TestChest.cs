@@ -21,11 +21,6 @@ namespace Routed.Items
 	{
 		public override string Texture => "Terraria/Item_48";
 
-		public override void SetStaticDefaults()
-		{
-			DisplayName.SetDefault("Test Chest");
-		}
-
 		public override void SetDefaults()
 		{
 			item.width = 16;
@@ -39,10 +34,21 @@ namespace Routed.Items
 			item.consumable = true;
 			item.createTile = ModContent.TileType<TestChestTile>();
 		}
+
+		public override void SetStaticDefaults()
+		{
+			DisplayName.SetDefault("Test Chest");
+		}
 	}
 
 	public class TestChestTE : BaseTE, IHasUI, IItemHandler
 	{
+		public TestChestTE()
+		{
+			UUID = Guid.NewGuid();
+			Handler = new ItemHandler(27);
+		}
+
 		public override Type TileType => typeof(TestChestTile);
 		public Guid UUID { get; set; }
 		public BaseUIPanel UI { get; set; }
@@ -50,10 +56,10 @@ namespace Routed.Items
 		public LegacySoundStyle OpenSound { get; }
 		public ItemHandler Handler { get; }
 
-		public TestChestTE()
+		public override void Load(TagCompound tag)
 		{
-			UUID = Guid.NewGuid();
-			Handler = new ItemHandler(27);
+			UUID = tag.Get<Guid>("UUID");
+			Handler.Load(tag.GetCompound("Items"));
 		}
 
 		public override void OnKill()
@@ -66,17 +72,30 @@ namespace Routed.Items
 			["UUID"] = UUID,
 			["Items"] = Handler.Save()
 		};
-
-		public override void Load(TagCompound tag)
-		{
-			UUID = tag.Get<Guid>("UUID");
-			Handler.Load(tag.GetCompound("Items"));
-		}
 	}
 
 	public class TestChestTile : BaseTile
 	{
 		public override string Texture => "Terraria/Tiles_21";
+
+		public override void KillMultiTile(int i, int j, int frameX, int frameY)
+		{
+			TestChestTE drawer = Utility.GetTileEntity<TestChestTE>(i, j);
+			BaseLibrary.BaseLibrary.PanelGUI.UI.CloseUI(drawer);
+
+			Item.NewItem(i * 16, j * 16, 32, 32, ModContent.ItemType<TestChest>());
+			drawer.Kill(i, j);
+		}
+
+		public override bool NewRightClick(int i, int j)
+		{
+			TestChestTE drawer = Utility.GetTileEntity<TestChestTE>(i, j);
+			if (drawer == null) return false;
+
+			BaseLibrary.BaseLibrary.PanelGUI.UI.HandleUI(drawer);
+
+			return true;
+		}
 
 		public override void SetDefaults()
 		{
@@ -95,29 +114,13 @@ namespace Routed.Items
 			ModTranslation name = CreateMapEntryName();
 			AddMapEntry(Color.Brown, name);
 		}
-
-		public override bool NewRightClick(int i, int j)
-		{
-			TestChestTE drawer = Utility.GetTileEntity<TestChestTE>(i, j);
-			if (drawer == null) return false;
-
-			BaseLibrary.BaseLibrary.PanelGUI.UI.HandleUI(drawer);
-
-			return true;
-		}
-
-		public override void KillMultiTile(int i, int j, int frameX, int frameY)
-		{
-			TestChestTE drawer = Utility.GetTileEntity<TestChestTE>(i, j);
-			BaseLibrary.BaseLibrary.PanelGUI.UI.CloseUI(drawer);
-
-			Item.NewItem(i * 16, j * 16, 32, 32, ModContent.ItemType<TestChest>());
-			drawer.Kill(i, j);
-		}
 	}
 
 	public class TestChestUI : BaseUIPanel<TestChestTE>, IItemHandlerUI
 	{
+		public ItemHandler Handler => Container.Handler;
+		public string GetTexture(Item item) => "Terraria/Item_48";
+
 		public override void OnInitialize()
 		{
 			Width = (408, 0);
@@ -158,8 +161,5 @@ namespace Routed.Items
 				gridItems.Add(slot);
 			}
 		}
-
-		public ItemHandler Handler => Container.Handler;
-		public string GetTexture(Item item) => "Terraria/Item_48";
 	}
 }

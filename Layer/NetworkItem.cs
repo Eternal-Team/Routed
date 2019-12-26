@@ -12,14 +12,14 @@ namespace Routed.Layer
 	{
 		public const int speed = 20;
 		public Point16 CurrentPosition;
+		public Duct destination;
 		public Item item;
+
+		public Duct origin;
 
 		public Stack<Point16> path;
 		public Point16 PreviousPosition;
 		public int timer = speed;
-
-		public Duct origin;
-		public Duct destination;
 
 		public NetworkItem(Item item, Duct origin, Duct destination)
 		{

@@ -14,12 +14,15 @@ using Terraria.UI.Chat;
 
 namespace Routed.UI
 {
-	public class RequesterModulePanel : BaseUIPanel<RequesterModule>
+	public class RequesterModulePanel : BaseUIPanel<RequesterModule>, IItemHandlerUI
 	{
-		private UIGrid<UISlot> gridSlots;
 		private const int Columns = 13;
 		private const int Rows = 6;
 		private const int SlotSize = 44;
+		private UIGrid<UIRequesterSlot> gridSlots;
+
+		public ItemHandler Handler => Container.Handler;
+		public string GetTexture(Item item) => "Routed/Textures/Modules/RequesterModule";
 
 		public override void OnInitialize()
 		{
@@ -54,7 +57,7 @@ namespace Routed.UI
 			};
 			Append(panel);
 
-			gridSlots = new UIGrid<UISlot>(Columns)
+			gridSlots = new UIGrid<UIRequesterSlot>(Columns)
 			{
 				Width = (-28, 1),
 				Height = (0, 1)
@@ -90,8 +93,7 @@ namespace Routed.UI
 				UIGrid<UIContainerSlot> gridOutout = new UIGrid<UIContainerSlot>(10)
 				{
 					Width = ((SlotSize + 4) * 10 - 4, 0),
-					Height = (0, 1),
-
+					Height = (0, 1)
 				};
 				panel.Append(gridOutout);
 
@@ -99,9 +101,10 @@ namespace Routed.UI
 				{
 					UIContainerSlot slot = new UIContainerSlot(() => Container.Handler, i)
 					{
-						Width = (SlotSize,0),
-						Height = (SlotSize,0)
+						Width = (SlotSize, 0),
+						Height = (SlotSize, 0)
 					};
+					slot.SetPadding(2);
 					gridOutout.Add(slot);
 				}
 			}
@@ -133,6 +136,7 @@ namespace Routed.UI
 						Width = (SlotSize, 0),
 						Height = (SlotSize, 0)
 					};
+					slot.SetPadding(2);
 					gridInput.Add(slot);
 				}
 			}
@@ -154,12 +158,13 @@ namespace Routed.UI
 					Item item = handler.Items[i];
 					if (item.IsAir) continue;
 
-					UISlot slot = new UISlot(i)
+					UIRequesterSlot slot = new UIRequesterSlot(i)
 					{
 						Width = (SlotSize, 0),
 						Height = (SlotSize, 0),
 						PreviewItem = item
 					};
+					slot.SetPadding(2);
 					int i1 = i;
 					slot.OnClick += (evt, element) => Container.Parent.Network.PullItem(handler.ExtractItem(i1, 10), module.Parent, Container.Parent);
 					gridSlots.Add(slot);
@@ -167,21 +172,18 @@ namespace Routed.UI
 			}
 		}
 
-		private class UISlot : BaseElement
+		private class UIRequesterSlot : BaseElement
 		{
 			private int index;
 			public Item PreviewItem;
 
-			public UISlot(int index)
+			public UIRequesterSlot(int index)
 			{
 				this.index = index;
 				Width = Height = (40, 0);
 			}
 
-			public override int CompareTo(object obj)
-			{
-				return index.CompareTo((obj as UISlot)?.index);
-			}
+			public override int CompareTo(object obj) => index.CompareTo((obj as UIRequesterSlot)?.index);
 
 			private void DrawItem(SpriteBatch spriteBatch, Item item, float scale)
 			{
@@ -215,9 +217,8 @@ namespace Routed.UI
 				if (ItemID.Sets.TrapSigned[item.type]) spriteBatch.Draw(Main.wireTexture, position + new Vector2(40f, 40f) * scale, new Rectangle(4, 58, 8, 8), Color.White, 0f, new Vector2(4f), 1f, SpriteEffects.None, 0f);
 				if (item.stack > 1)
 				{
-					string text = item.stack.ToString();
-
-					spriteBatch.Draw(Utility.ImmediateState, () => { ChatManager.DrawColorCodedStringWithShadow(spriteBatch, Main.fontItemStack, text, InnerDimensions.Position() + new Vector2(8, InnerDimensions.Height - Main.fontMouseText.MeasureString(text).Y * scale), Color.White, 0f, Vector2.Zero, new Vector2(0.85f), -1f, scale); });
+					string text = item.stack < 1000 ? item.stack.ToString() : item.stack.ToSI("N1");
+					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, Main.fontItemStack, text, InnerDimensions.Position() + new Vector2(8, InnerDimensions.Height - Main.fontMouseText.MeasureString(text).Y * scale), Color.White, 0f, Vector2.Zero, new Vector2(0.85f), -1f, scale);
 				}
 
 				if (IsMouseHovering)
@@ -227,7 +228,7 @@ namespace Routed.UI
 					Main.HoverItem = item.Clone();
 					Main.hoverItemName = Main.HoverItem.Name;
 
-					//if (ItemSlot.ShiftInUse) Hooking.SetCursor("Terraria/UI/Cursor_7");
+					if (ItemSlot.ShiftInUse) BaseLibrary.Hooking.SetCursor("Routed/Textures/Modules/RequesterModule");
 				}
 			}
 

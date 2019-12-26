@@ -25,12 +25,11 @@ namespace Routed.Layer
 		{
 		}
 
-		public virtual void OnRemove()
+		public virtual void OnPlace(BaseModuleItem item)
 		{
-
 		}
 
-		public virtual void OnPlace(BaseModuleItem item)
+		public virtual void OnRemove()
 		{
 		}
 

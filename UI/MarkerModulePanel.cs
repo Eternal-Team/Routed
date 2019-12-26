@@ -102,11 +102,6 @@ namespace Routed.UI
 			private Mod mod;
 			private UIText text;
 
-			public Color TextColor
-			{
-				set => text.TextColor = value;
-			}
-
 			public UIModItem(Mod mod)
 			{
 				this.mod = mod;
@@ -120,6 +115,11 @@ namespace Routed.UI
 					VerticalAlignment = VerticalAlignment.Center
 				};
 				Append(text);
+			}
+
+			public Color TextColor
+			{
+				set => text.TextColor = value;
 			}
 		}
 	}
