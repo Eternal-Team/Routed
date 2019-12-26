@@ -85,19 +85,7 @@ namespace Routed.Modules
 
 				Item item = handler.ExtractItem(i, ItemsPerExtraction);
 
-				// todo: priority system (eg. weapons will go first to weapons then materials)
-				MarkerModule module = Parent.Network.MarkerModules.LastOrDefault(markerModule =>
-				{
-					ItemHandler other = markerModule.GetHandler();
-					if (other == null) return false;
-					return other.HasSpace(item) && markerModule.IsItemValid(item);
-				});
-
-				if (module != null)
-				{
-					Parent.Network.NetworkItems.Add(new NetworkItem(item, Parent, module.Parent));
-					break;
-				}
+				if (Parent.Network.PushItem(item, Parent)) break;
 
 				handler.InsertItem(ref item);
 			}

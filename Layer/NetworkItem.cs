@@ -61,6 +61,7 @@ namespace Routed.Layer
 						BaseModule module = duct.Module;
 						ItemHandler handler = module.GetHandler();
 						handler?.InsertItem(ref item);
+						duct.Module.Parent.Network.UpdateUIs();
 					}
 
 					if (!item.IsAir)

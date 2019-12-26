@@ -1,17 +1,19 @@
 ﻿using BaseLibrary;
+using ContainerLibrary;
 using LayerLibrary;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Routed.Modules;
+using Routed.UI;
 using System.Collections.Generic;
 using System.Linq;
+using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader.IO;
+using Terraria.UI;
 
 namespace Routed.Layer
 {
-	// todo: methods for push/pull from network -> update UIs
-
 	public class RoutedNetwork
 	{
 		public static List<RoutedNetwork> Networks = new List<RoutedNetwork>();
@@ -107,6 +109,44 @@ namespace Routed.Layer
 			{
 				item.path = Pathfinding.FindPath(Routed.RoutedLayer[item.CurrentPosition], item.destination);
 			}
+		}
+
+		public void UpdateUIs()
+		{
+			foreach (UIElement element in BaseLibrary.BaseLibrary.PanelGUI.Elements)
+			{
+				if (element is RequesterModulePanel panel)
+				{
+					panel.PopulateGrid();
+				}
+			}
+		}
+
+		public bool PushItem(Item item, Duct origin)
+		{
+			// todo: priority system (eg. weapons will go first to weapons then materials)
+			MarkerModule module = MarkerModules.LastOrDefault(markerModule =>
+			{
+				ItemHandler other = markerModule.GetHandler();
+				if (other == null) return false;
+				return other.HasSpace(item) && markerModule.IsItemValid(item);
+			});
+
+			if (module != null)
+			{
+				NetworkItems.Add(new NetworkItem(item, origin, module.Parent));
+				return true;
+			}
+
+			return false;
+		}
+
+		public void PullItem(Item item, Duct origin, Duct destination)
+		{
+			NetworkItem networkItem = new NetworkItem(item, origin, destination);
+			NetworkItems.Add(networkItem);
+
+			UpdateUIs();
 		}
 	}
 }
