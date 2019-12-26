@@ -16,7 +16,8 @@ namespace Routed
 	public class Routed : Mod
 	{
 		public static Dictionary<string, Type> markerModules;
-		public RoutedLayer RoutedLayer;
+
+		public static RoutedLayer RoutedLayer;
 
 		// todo: tooltips
 		public void EmitDynamicItems()

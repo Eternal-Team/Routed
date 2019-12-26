@@ -3,7 +3,6 @@ using Microsoft.Xna.Framework;
 using Routed.Layer;
 using Terraria;
 using Terraria.ID;
-using Terraria.ModLoader;
 
 namespace Routed.Items
 {
@@ -17,8 +16,8 @@ namespace Routed.Items
 
 		public override bool ConsumeItem(Player player)
 		{
-			if (player.altFunctionUse == 2) ModContent.GetInstance<Routed>().RoutedLayer.RemoveModule();
-			else return ModContent.GetInstance<Routed>().RoutedLayer.PlaceModule(this);
+			if (player.altFunctionUse == 2) Routed.RoutedLayer.RemoveModule();
+			else return Routed.RoutedLayer.PlaceModule(this);
 
 			return false;
 		}

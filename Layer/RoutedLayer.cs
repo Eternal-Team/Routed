@@ -87,9 +87,9 @@ namespace Routed.Layer
 
 			if (TryGetValue(posX, posY, out Duct element))
 			{
+				data.Remove(new Point16(posX, posY));
 				RemoveModule();
 				element.OnRemove();
-				data.Remove(new Point16(posX, posY));
 
 				foreach (Duct neighbor in element.GetVisualNeighbors()) neighbor.UpdateFrame();
 

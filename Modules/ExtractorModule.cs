@@ -1,11 +1,9 @@
 ﻿using BaseLibrary;
 using ContainerLibrary;
-using LayerLibrary;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Routed.Items;
 using Routed.Layer;
-using System;
 using System.Linq;
 using Terraria;
 using Terraria.ModLoader;
@@ -86,17 +84,17 @@ namespace Routed.Modules
 				if (handler.Items[i] == null || handler.Items[i].IsAir) continue;
 
 				Item item = handler.ExtractItem(i, ItemsPerExtraction);
-				
+
 				MarkerModule module = Parent.Network.MarkerModules.FirstOrDefault(markerModule =>
 				{
-					ItemHandler handler = markerModule.GetHandler();
-					if (handler == null) return false;
-					return handler.HasSpace(item) && markerModule.IsItemValid(item);
+					ItemHandler other = markerModule.GetHandler();
+					if (other == null) return false;
+					return other.HasSpace(item) && markerModule.IsItemValid(item);
 				});
-				
+
 				if (module != null)
 				{
-					Parent.Network.NetworkItems.Add(new NetworkItem(item, Pathfinding.FindPath(Parent.Network.Tiles, Parent.Position, module.Parent.Position)));
+					Parent.Network.NetworkItems.Add(new NetworkItem(item, Parent, module.Parent));
 					break;
 				}
 

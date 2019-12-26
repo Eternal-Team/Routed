@@ -2,10 +2,8 @@
 using ContainerLibrary;
 using LayerLibrary;
 using System.Collections.Generic;
-using System.Linq;
 using Terraria;
 using Terraria.DataStructures;
-using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
 namespace Routed.Layer
@@ -20,25 +18,34 @@ namespace Routed.Layer
 		public Point16 PreviousPosition;
 		public int timer = speed;
 
-		public NetworkItem(Item item, Stack<Point16> path)
+		public Duct origin;
+		public Duct destination;
+
+		public NetworkItem(Item item, Duct origin, Duct destination)
 		{
 			this.item = item;
-			this.path = path;
+			this.origin = origin;
+			this.destination = destination;
+
+			path = Pathfinding.FindPath(origin, destination);
 			CurrentPosition = PreviousPosition = path.Pop();
 		}
 
-		public NetworkItem(TagCompound tag, RoutedNetwork network)
+		public NetworkItem(TagCompound tag)
 		{
 			item = tag.Get<Item>("Item");
-			CurrentPosition = PreviousPosition = tag.Get<Point16>("Position");
-			path = Pathfinding.FindPath(network.Tiles, CurrentPosition, tag.Get<Point16>("Destination"));
+			origin = Routed.RoutedLayer[tag.Get<Point16>("Position")];
+			destination = Routed.RoutedLayer[tag.Get<Point16>("Destination")];
+
+			path = Pathfinding.FindPath(origin, destination);
+			CurrentPosition = PreviousPosition = path.Pop();
 		}
 
 		public TagCompound Save() => new TagCompound
 		{
 			["Item"] = item,
 			["Position"] = CurrentPosition,
-			["Destination"] = path.Count == 0 ? CurrentPosition : path.Last()
+			["Destination"] = destination.Position
 		};
 
 		public void Update()
@@ -49,7 +56,7 @@ namespace Routed.Layer
 
 				if (path.Count == 0)
 				{
-					if (ModContent.GetInstance<Routed>().RoutedLayer.TryGetValue(CurrentPosition, out Duct duct) && duct.Module != null)
+					if (Routed.RoutedLayer.TryGetValue(CurrentPosition, out Duct duct) && duct.Module != null)
 					{
 						BaseModule module = duct.Module;
 						ItemHandler handler = module.GetHandler();
@@ -66,7 +73,7 @@ namespace Routed.Layer
 				{
 					CurrentPosition = path.Pop();
 
-					if (!ModContent.GetInstance<Routed>().RoutedLayer.ContainsKey(CurrentPosition))
+					if (!Routed.RoutedLayer.ContainsKey(CurrentPosition))
 					{
 						Utility.NewItem(CurrentPosition.X * 16, CurrentPosition.Y * 16, 16, 16, item);
 						item.TurnToAir();

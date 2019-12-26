@@ -1,11 +1,12 @@
 ﻿using BaseLibrary;
+using LayerLibrary;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Routed.Modules;
 using System.Collections.Generic;
 using System.Linq;
+using Terraria;
 using Terraria.DataStructures;
-using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
 namespace Routed.Layer
@@ -23,15 +24,6 @@ namespace Routed.Layer
 			Networks.Add(this);
 
 			debugColor = Utility.RandomColor();
-		}
-
-		public RoutedNetwork(Duct duct)
-		{
-			Networks.Add(this);
-
-			debugColor = Utility.RandomColor();
-
-			Tiles = new List<Duct> { duct };
 		}
 
 		public List<Duct> Tiles { set; get; }
@@ -59,7 +51,7 @@ namespace Routed.Layer
 
 		public void Load(TagCompound tag)
 		{
-			RoutedLayer layer = ModContent.GetInstance<Routed>().RoutedLayer;
+			RoutedLayer layer = Routed.RoutedLayer;
 			Tiles = new List<Duct>();
 			NetworkItems = new List<NetworkItem>();
 
@@ -79,7 +71,7 @@ namespace Routed.Layer
 
 			foreach (TagCompound compound in tag.GetList<TagCompound>("NetworkItems"))
 			{
-				NetworkItems.Add(new NetworkItem(compound, this));
+				NetworkItems.Add(new NetworkItem(compound));
 			}
 		}
 
@@ -103,6 +95,16 @@ namespace Routed.Layer
 				NetworkItem item = NetworkItems[i];
 				item.Update();
 				if (item.item == null || item.item.IsAir) NetworkItems.Remove(item);
+			}
+		}
+
+		public void CheckPaths()
+		{
+			IEnumerable<Point16> tiles = Tiles.Select(duct => duct.Position).ToList();
+
+			foreach (NetworkItem item in NetworkItems.Where(item => item.path.Any(position => !tiles.Contains(position))))
+			{
+				item.path = Pathfinding.FindPath(Routed.RoutedLayer[item.CurrentPosition], item.destination);
 			}
 		}
 	}

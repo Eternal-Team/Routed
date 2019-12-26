@@ -2,7 +2,6 @@
 using BaseLibrary.UI;
 using BaseLibrary.UI.Elements;
 using ContainerLibrary;
-using LayerLibrary;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Routed.Layer;
@@ -95,7 +94,7 @@ namespace Routed.UI
 					int i1 = i;
 					slot.OnClick += (evt, element) =>
 					{
-						NetworkItem networkItem = new NetworkItem(handler.ExtractItem(i1, 10), Pathfinding.FindPath(Container.Parent.Network.Tiles, module.Parent.Position, Container.Parent.Position));
+						NetworkItem networkItem = new NetworkItem(handler.ExtractItem(i1, 10), module.Parent, Container.Parent);
 						Container.Parent.Network.NetworkItems.Add(networkItem);
 
 						PopulateGrid();

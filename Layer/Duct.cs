@@ -116,7 +116,6 @@ namespace Routed.Layer
 			}
 		}
 
-		// todo: try to calculate new paths for items if current path is disconnected
 		public override void OnRemove()
 		{
 			if (Network.Tiles.Count == 1) RoutedNetwork.Networks.Remove(Network);
@@ -124,35 +123,38 @@ namespace Routed.Layer
 			else
 			{
 				List<Point16> visited = new List<Point16>();
-				List<List<Point16>> doot = new List<List<Point16>>();
-
-				int numNetworks = 0;
+				List<List<Point16>> newNetworks = new List<List<Point16>>();
 
 				foreach (Duct duct in GetNeighbors())
 				{
 					if (visited.Contains(duct.Position)) continue;
 
-					numNetworks++;
 					visited.Add(duct.Position);
 
-					List<Point16> p = new List<Point16> { Position };
+					List<Point16> p = new List<Point16> { Position, duct.Position };
 					GetNeighborsRecursive(duct, p);
 					visited.AddRange(p);
 
 					p.Remove(Position);
-					doot.Add(p);
+					newNetworks.Add(p);
 				}
 
-				if (numNetworks <= 1) Network.Tiles.Remove(this);
+				if (newNetworks.Count <= 1)
+				{
+					Main.NewText(Network.Tiles.Count);
+					Network.Tiles.Remove(this);
+					Network.CheckPaths();
+				}
 				else
 				{
-					for (int i = 0; i < doot.Count; i++)
+					for (int i = 0; i < newNetworks.Count; i++)
 					{
 						RoutedNetwork network = new RoutedNetwork
 						{
-							Tiles = doot[i].Select(position => Layer[position]).ToList(),
-							NetworkItems = doot[i].Select(position => Layer[position].Network).Distinct().SelectMany(routedNetwork => routedNetwork.NetworkItems).ToList()
+							Tiles = newNetworks[i].Select(position => Layer[position]).ToList(),
+							NetworkItems = newNetworks[i].Select(position => Layer[position].Network).Distinct().SelectMany(routedNetwork => routedNetwork.NetworkItems).ToList()
 						};
+						network.CheckPaths();
 						foreach (Duct duct in network.Tiles)
 						{
 							duct.Network.NetworkItems.Clear();
