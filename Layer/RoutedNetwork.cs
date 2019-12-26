@@ -83,14 +83,12 @@ namespace Routed.Layer
 				Tiles.Add(element);
 			}
 
-			foreach (TagCompound compound in tag.GetList<TagCompound>("NetworkItems"))
-			{
-				NetworkItems.Add(new NetworkItem(compound));
-			}
+			foreach (TagCompound compound in tag.GetList<TagCompound>("NetworkItems")) NetworkItems.Add(new NetworkItem(compound));
 		}
 
 		public void PullItem(int type, int count, Duct destination)
 		{
+			// todo: switch to provider modules
 			foreach (MarkerModule module in MarkerModules)
 			{
 				ItemHandler handler = module.GetHandler();
@@ -164,10 +162,7 @@ namespace Routed.Layer
 		{
 			foreach (UIElement element in BaseLibrary.BaseLibrary.PanelGUI.Elements)
 			{
-				if (element is RequesterModulePanel panel)
-				{
-					panel.PopulateGrid();
-				}
+				if (element is RequesterModulePanel panel) panel.PopulateGrid();
 			}
 		}
 	}

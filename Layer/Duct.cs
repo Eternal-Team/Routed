@@ -212,6 +212,7 @@ namespace Routed.Layer
 
 		private const string TextureLocation = "Routed/Textures/Duct/";
 
+		// todo: doesn't get called on subsecutive loads
 		static Duct()
 		{
 			textureNormal = ModContent.GetTexture(TextureLocation + "Normal");
