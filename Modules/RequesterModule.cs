@@ -79,6 +79,8 @@ namespace Routed.Modules
 
 		public override void Update()
 		{
+			if (UI != null && Vector2.DistanceSquared(Main.LocalPlayer.position, new Vector2(Parent.Position.X, Parent.Position.Y) * 16) > 9216) BaseLibrary.BaseLibrary.PanelGUI.UI.CloseUI(this);
+
 			if (timer++ < maxTimer) return;
 			timer = 0;
 
