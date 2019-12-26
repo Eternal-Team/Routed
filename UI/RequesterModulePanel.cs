@@ -4,7 +4,6 @@ using BaseLibrary.UI.Elements;
 using ContainerLibrary;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Routed.Layer;
 using Routed.Modules;
 using System;
 using Terraria;
@@ -20,11 +19,12 @@ namespace Routed.UI
 		private UIGrid<UISlot> gridSlots;
 		private const int Columns = 13;
 		private const int Rows = 6;
+		private const int SlotSize = 44;
 
 		public override void OnInitialize()
 		{
-			Width = (8 + 44 * Columns - 4 + 8 + 28 + 16, 0);
-			Height = (8 + 20 + 8 + 44 * Rows - 4 + 8 + 20 + 8 + 44 * 2 - 4 + 8 + 16, 0);
+			Width = (8 + (SlotSize + 4) * Columns - 4 + 8 + 28 + 16, 0);
+			Height = (8 + 20 + 8 + (SlotSize + 4) * Rows - 4 + 8 + 20 + 8 + (SlotSize + 4) * 2 - 4 + 8 + 16, 0);
 			this.Center();
 
 			UITextButton buttonClose = new UITextButton("X")
@@ -48,7 +48,7 @@ namespace Routed.UI
 			{
 				Top = (28, 0),
 				Width = (0, 1),
-				Height = (44 * Rows - 4, 0),
+				Height = ((SlotSize + 4) * Rows - 4, 0),
 				BorderColor = Color.Transparent,
 				BackgroundColor = Utility.ColorPanel_Selected * 0.75f
 			};
@@ -70,18 +70,18 @@ namespace Routed.UI
 			{
 				UIText textRequestedItem = new UIText("Requested Items")
 				{
-					Width = (44 * 10 - 4, 0),
+					Width = ((SlotSize + 4) * 10 - 4, 0),
 					MarginLeft = 8,
-					Top = (28 + 44 * Rows - 4 + 8, 0),
+					Top = (28 + (SlotSize + 4) * Rows - 4 + 8, 0),
 					HorizontalAlignment = HorizontalAlignment.Center
 				};
 				Append(textRequestedItem);
 
 				panel = new UIPanel
 				{
-					Top = (28 + 44 * Rows - 4 + 8 + 20 + 8, 0),
+					Top = (28 + (SlotSize + 4) * Rows - 4 + 8 + 20 + 8, 0),
 					Width = (0, 1),
-					Height = (44 * 2 - 4 + 16, 0),
+					Height = ((SlotSize + 4) * 2 - 4 + 16, 0),
 					BorderColor = Color.Transparent,
 					BackgroundColor = Utility.ColorPanel_Selected * 0.75f
 				};
@@ -89,14 +89,19 @@ namespace Routed.UI
 
 				UIGrid<UIContainerSlot> gridOutout = new UIGrid<UIContainerSlot>(10)
 				{
-					Width = (44 * 10 - 4, 0),
-					Height = (0, 1)
+					Width = ((SlotSize + 4) * 10 - 4, 0),
+					Height = (0, 1),
+
 				};
 				panel.Append(gridOutout);
 
 				for (int i = 0; i < Container.Handler.Slots; i++)
 				{
-					UIContainerSlot slot = new UIContainerSlot(() => Container.Handler, i);
+					UIContainerSlot slot = new UIContainerSlot(() => Container.Handler, i)
+					{
+						Width = (SlotSize,0),
+						Height = (SlotSize,0)
+					};
 					gridOutout.Add(slot);
 				}
 			}
@@ -105,17 +110,17 @@ namespace Routed.UI
 			{
 				UIText textReturnItems = new UIText("Return")
 				{
-					Width = (44 * 3 - 4, 0),
+					Width = ((SlotSize + 4) * 3 - 4, 0),
 					MarginRight = 8,
 					HAlign = 1,
-					Top = (28 + 44 * Rows - 4 + 8, 0),
+					Top = (28 + (SlotSize + 4) * Rows - 4 + 8, 0),
 					HorizontalAlignment = HorizontalAlignment.Center
 				};
 				Append(textReturnItems);
 
 				UIGrid<UIContainerSlot> gridInput = new UIGrid<UIContainerSlot>(3)
 				{
-					Width = (44 * 3 - 4, 0),
+					Width = ((SlotSize + 4) * 3 - 4, 0),
 					Height = (0, 1),
 					HAlign = 1
 				};
@@ -123,7 +128,11 @@ namespace Routed.UI
 
 				for (int i = 0; i < Container.ReturnItems.Slots; i++)
 				{
-					UIContainerSlot slot = new UIContainerSlot(() => Container.ReturnItems, i);
+					UIContainerSlot slot = new UIContainerSlot(() => Container.ReturnItems, i)
+					{
+						Width = (SlotSize, 0),
+						Height = (SlotSize, 0)
+					};
 					gridInput.Add(slot);
 				}
 			}
@@ -145,15 +154,14 @@ namespace Routed.UI
 					Item item = handler.Items[i];
 					if (item.IsAir) continue;
 
-					UISlot slot = new UISlot(i) { PreviewItem = item };
-					int i1 = i;
-					slot.OnClick += (evt, element) =>
+					UISlot slot = new UISlot(i)
 					{
-						NetworkItem networkItem = new NetworkItem(handler.ExtractItem(i1, 10), module.Parent, Container.Parent);
-						Container.Parent.Network.NetworkItems.Add(networkItem);
-
-						PopulateGrid();
+						Width = (SlotSize, 0),
+						Height = (SlotSize, 0),
+						PreviewItem = item
 					};
+					int i1 = i;
+					slot.OnClick += (evt, element) => Container.Parent.Network.PullItem(handler.ExtractItem(i1, 10), module.Parent, Container.Parent);
 					gridSlots.Add(slot);
 				}
 			}
