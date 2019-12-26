@@ -85,6 +85,7 @@ namespace Routed.Modules
 
 				Item item = handler.ExtractItem(i, ItemsPerExtraction);
 
+				// todo: priority system (eg. weapons will go first to weapons then materials)
 				MarkerModule module = Parent.Network.MarkerModules.FirstOrDefault(markerModule =>
 				{
 					ItemHandler other = markerModule.GetHandler();
