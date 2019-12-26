@@ -129,19 +129,18 @@ namespace Routed.Modules
 
 	public class MarkerModule : BaseModule, IHasUI
 	{
-		public FilterMode Mode;
-
-		public MarkerModule()
-		{
-			UUID = Guid.NewGuid();
-		}
-
 		public override int DropItem => ModContent.GetInstance<Routed>().ItemType("MarkerModule" + Mode.GetType().Name.Replace("Mode", ""));
 
 		public Guid UUID { get; set; }
 		public BaseUIPanel UI { get; set; }
 		public LegacySoundStyle CloseSound => SoundID.Item1;
 		public LegacySoundStyle OpenSound => SoundID.Item1;
+		public FilterMode Mode;
+
+		public MarkerModule()
+		{
+			UUID = Guid.NewGuid();
+		}
 
 		public override void Draw(SpriteBatch spriteBatch)
 		{

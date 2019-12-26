@@ -17,18 +17,6 @@ namespace Routed.Modules
 	{
 		private const int maxTimer = 30;
 
-		public ItemHandler ReturnItems;
-
-		private int timer;
-
-		public RequesterModule()
-		{
-			UUID = Guid.NewGuid();
-
-			Handler = new ItemHandler(20);
-			ReturnItems = new ItemHandler(6);
-		}
-
 		public override int DropItem => ModContent.ItemType<Items.RequesterModule>();
 
 		public Guid UUID { get; set; }
@@ -37,6 +25,22 @@ namespace Routed.Modules
 		public LegacySoundStyle OpenSound => SoundID.Item1;
 
 		public ItemHandler Handler { get; }
+		public ItemHandler ReturnHandler;
+
+		private int timer;
+
+		public RequesterModule()
+		{
+			UUID = Guid.NewGuid();
+
+			Handler = new ItemHandler(20);
+			Handler.OnContentsChanged += slot =>
+			{
+				if (UI != null) Recipe.FindRecipes();
+			};
+
+			ReturnHandler = new ItemHandler(6);
+		}
 
 		public override void Draw(SpriteBatch spriteBatch)
 		{
@@ -49,6 +53,7 @@ namespace Routed.Modules
 		public override bool Interact()
 		{
 			BaseLibrary.BaseLibrary.PanelGUI.UI.HandleUI(this);
+			if (Main.netMode != NetmodeID.Server) Recipe.FindRecipes();
 
 			return true;
 		}
@@ -57,7 +62,7 @@ namespace Routed.Modules
 		{
 			UUID = tag.Get<Guid>("UUID");
 			Handler.Load(tag.GetCompound("Items"));
-			ReturnItems.Load(tag.GetCompound("ReturnItems"));
+			ReturnHandler.Load(tag.GetCompound("ReturnItems"));
 		}
 
 		public override void OnRemove()
@@ -69,7 +74,7 @@ namespace Routed.Modules
 		{
 			["UUID"] = UUID,
 			["Items"] = Handler.Save(),
-			["ReturnItems"] = ReturnItems.Save()
+			["ReturnItems"] = ReturnHandler.Save()
 		};
 
 		public override void Update()
@@ -77,15 +82,15 @@ namespace Routed.Modules
 			if (timer++ < maxTimer) return;
 			timer = 0;
 
-			for (int i = 0; i < ReturnItems.Slots; i++)
+			for (int i = 0; i < ReturnHandler.Slots; i++)
 			{
-				if (ReturnItems.Items[i] == null || ReturnItems.Items[i].IsAir) continue;
+				if (ReturnHandler.Items[i] == null || ReturnHandler.Items[i].IsAir) continue;
 
-				Item item = ReturnItems.ExtractItem(i, 10);
+				Item item = ReturnHandler.ExtractItem(i, 100);
 
 				if (Parent.Network.PushItem(item, Parent)) break;
 
-				ReturnItems.InsertItem(ref item);
+				ReturnHandler.InsertItem(ref item);
 			}
 		}
 	}

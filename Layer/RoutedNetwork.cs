@@ -18,6 +18,16 @@ namespace Routed.Layer
 	{
 		public static List<RoutedNetwork> Networks = new List<RoutedNetwork>();
 
+		public List<Duct> Tiles { set; get; }
+
+		public List<ProviderModule> ProviderModules => Tiles.Select(duct => duct.Module).OfType<ProviderModule>().ToList();
+
+		public List<ConsumerModule> ConsumerModules => Tiles.Select(duct => duct.Module).OfType<ConsumerModule>().ToList();
+
+		public List<MarkerModule> MarkerModules => Tiles.Select(duct => duct.Module).OfType<MarkerModule>().ToList();
+
+		public List<ExtractorModule> ExtractorModules => Tiles.Select(duct => duct.Module).OfType<ExtractorModule>().ToList();
+
 		internal Color debugColor;
 
 		public List<NetworkItem> NetworkItems = new List<NetworkItem>();
@@ -28,16 +38,6 @@ namespace Routed.Layer
 
 			debugColor = Utility.RandomColor();
 		}
-
-		public List<Duct> Tiles { set; get; }
-
-		public List<ProviderModule> ProviderModules => Tiles.Select(duct => duct.Module).OfType<ProviderModule>().ToList();
-
-		public List<ConsumerModule> ConsumerModules => Tiles.Select(duct => duct.Module).OfType<ConsumerModule>().ToList();
-
-		public List<MarkerModule> MarkerModules => Tiles.Select(duct => duct.Module).OfType<MarkerModule>().ToList();
-
-		public List<ExtractorModule> ExtractorModules => Tiles.Select(duct => duct.Module).OfType<ExtractorModule>().ToList();
 
 		public void CheckPaths()
 		{

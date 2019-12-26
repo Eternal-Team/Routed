@@ -8,8 +8,8 @@ namespace Routed.Layer
 {
 	public abstract class BaseModule
 	{
-		public Duct Parent;
 		public abstract int DropItem { get; }
+		public Duct Parent;
 
 		public virtual void Draw(SpriteBatch spriteBatch)
 		{

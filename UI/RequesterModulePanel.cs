@@ -19,10 +19,10 @@ namespace Routed.UI
 		private const int Columns = 13;
 		private const int Rows = 6;
 		private const int SlotSize = 44;
-		private UIGrid<UIRequesterSlot> gridSlots;
 
-		public ItemHandler Handler => Container.Handler;
+		public ItemHandler Handler => Container.ReturnHandler;
 		public string GetTexture(Item item) => "Routed/Textures/Modules/RequesterModule";
+		private UIGrid<UIRequesterSlot> gridSlots;
 
 		public override void OnInitialize()
 		{
@@ -59,7 +59,7 @@ namespace Routed.UI
 
 			gridSlots = new UIGrid<UIRequesterSlot>(Columns)
 			{
-				Width = (-28, 1),
+				Width = (-26, 1),
 				Height = (0, 1)
 			};
 			panel.Append(gridSlots);
@@ -92,7 +92,7 @@ namespace Routed.UI
 
 				UIGrid<UIContainerSlot> gridOutout = new UIGrid<UIContainerSlot>(10)
 				{
-					Width = ((SlotSize + 4) * 10 - 4, 0),
+					Width = ((SlotSize + 4) * 10 - 2, 0),
 					Height = (0, 1)
 				};
 				panel.Append(gridOutout);
@@ -129,9 +129,9 @@ namespace Routed.UI
 				};
 				panel.Append(gridInput);
 
-				for (int i = 0; i < Container.ReturnItems.Slots; i++)
+				for (int i = 0; i < Container.ReturnHandler.Slots; i++)
 				{
-					UIContainerSlot slot = new UIContainerSlot(() => Container.ReturnItems, i)
+					UIContainerSlot slot = new UIContainerSlot(() => Container.ReturnHandler, i)
 					{
 						Width = (SlotSize, 0),
 						Height = (SlotSize, 0)
@@ -141,9 +141,29 @@ namespace Routed.UI
 				}
 			}
 
+			UIButton buttonTransfer = new UIButton(ModContent.GetTexture("BaseLibrary/Textures/UI/QuickStack"))
+			{
+				VAlign = 0.5f,
+				Left = ((SlotSize + 4) * 10 - 4 + 16 - 10, 0),
+				Width = (20, 0),
+				Height = (20, 0),
+				HoverText = "Transfer items"
+			};
+			buttonTransfer.OnClick += (evt, element) =>
+			{
+				for (int i = 0; i < Container.Handler.Slots; i++)
+				{
+					ref Item item = ref Container.Handler.GetItemInSlotByRef(i);
+					Container.ReturnHandler.InsertItem(ref item);
+					if (!item.IsAir) break;
+				}
+			};
+			panel.Append(buttonTransfer);
+
 			PopulateGrid();
 		}
 
+		// todo: do not run a complete repopulation - try to update records first
 		public void PopulateGrid()
 		{
 			gridSlots.Clear();

@@ -43,18 +43,18 @@ namespace Routed.Items
 
 	public class TestChestTE : BaseTE, IHasUI, IItemHandler
 	{
-		public TestChestTE()
-		{
-			UUID = Guid.NewGuid();
-			Handler = new ItemHandler(27);
-		}
-
 		public override Type TileType => typeof(TestChestTile);
 		public Guid UUID { get; set; }
 		public BaseUIPanel UI { get; set; }
 		public LegacySoundStyle CloseSound { get; }
 		public LegacySoundStyle OpenSound { get; }
 		public ItemHandler Handler { get; }
+
+		public TestChestTE()
+		{
+			UUID = Guid.NewGuid();
+			Handler = new ItemHandler(27);
+		}
 
 		public override void Load(TagCompound tag)
 		{

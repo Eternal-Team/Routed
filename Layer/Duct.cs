@@ -15,12 +15,12 @@ namespace Routed.Layer
 {
 	public class Duct : ModLayerElement<Duct>
 	{
-		private ushort frame;
-		public BaseModule Module;
-		public RoutedNetwork Network;
 		public override string Texture => "";
 
 		public override int DropItem => ModContent.ItemType<BasicDuct>();
+		private ushort frame;
+		public BaseModule Module;
+		public RoutedNetwork Network;
 
 		public override void Draw(SpriteBatch spriteBatch)
 		{

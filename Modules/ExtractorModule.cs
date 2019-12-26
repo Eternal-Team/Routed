@@ -12,11 +12,6 @@ namespace Routed.Modules
 {
 	public class ExtractorModule : BaseModule
 	{
-		private int ExtractionSpeed;
-		private int ItemsPerExtraction;
-
-		private int timer;
-
 		public override int DropItem
 		{
 			get
@@ -34,6 +29,11 @@ namespace Routed.Modules
 				}
 			}
 		}
+
+		private int ExtractionSpeed;
+		private int ItemsPerExtraction;
+
+		private int timer;
 
 		public override void Draw(SpriteBatch spriteBatch)
 		{

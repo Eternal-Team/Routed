@@ -52,6 +52,8 @@ namespace Routed
 			RoutedLayer = new RoutedLayer();
 			markerModules = new Dictionary<string, Type>();
 
+			Hooking.Initialize();
+
 			if (!Main.dedServ) MouseEvents.ButtonPressed += args => args.Button == MouseButton.Right && RoutedLayer.Interact();
 
 			EmitDynamicItems();

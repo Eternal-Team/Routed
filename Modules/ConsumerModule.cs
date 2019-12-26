@@ -13,17 +13,17 @@ namespace Routed.Modules
 {
 	public class ConsumerModule : BaseModule, IHasUI
 	{
-		public ConsumerModule()
-		{
-			UUID = Guid.NewGuid();
-		}
-
 		public override int DropItem => ModContent.ItemType<Items.ConsumerModule>();
 
 		public Guid UUID { get; set; }
 		public BaseUIPanel UI { get; set; }
 		public LegacySoundStyle CloseSound => SoundID.Item1;
 		public LegacySoundStyle OpenSound => SoundID.Item1;
+
+		public ConsumerModule()
+		{
+			UUID = Guid.NewGuid();
+		}
 
 		public override void Draw(SpriteBatch spriteBatch)
 		{
