@@ -16,7 +16,7 @@ using Terraria.UI.Chat;
 
 namespace Routed.UI
 {
-	// todo: search bar and sorting modes
+	// todo: sorting modes
 	public class RequesterModulePanel : BaseUIPanel<RequesterModule>, IItemHandlerUI
 	{
 		private const int Columns = 13;

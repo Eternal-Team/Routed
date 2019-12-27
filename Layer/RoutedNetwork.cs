@@ -15,14 +15,14 @@ using Terraria.UI;
 
 namespace Routed.Layer
 {
-	public class AutoAddDictionary<T, K> : Dictionary<T,K>
+	public class AutoAddDictionary<T, K> : Dictionary<T, K>
 	{
 		public new K this[T key]
 		{
 			get
 			{
 				if (TryGetValue(key, out K value)) return value;
-				
+
 				Add(key, default);
 				return base[key];
 			}
@@ -38,8 +38,6 @@ namespace Routed.Layer
 	{
 		public static List<RoutedNetwork> Networks = new List<RoutedNetwork>();
 
-		public List<Duct> Tiles { set; get; }
-
 		public List<ProviderModule> ProviderModules => Tiles.Select(duct => duct.Module).OfType<ProviderModule>().ToList();
 
 		public List<ConsumerModule> ConsumerModules => Tiles.Select(duct => duct.Module).OfType<ConsumerModule>().ToList();
@@ -53,6 +51,8 @@ namespace Routed.Layer
 		public AutoAddDictionary<int, int> ItemCache = new AutoAddDictionary<int, int>();
 
 		public List<NetworkItem> NetworkItems = new List<NetworkItem>();
+
+		public List<Duct> Tiles;
 
 		public RoutedNetwork()
 		{
@@ -109,6 +109,7 @@ namespace Routed.Layer
 			RegenerateCache();
 		}
 
+		// todo: hook into caching
 		public void PullItem(int type, int count, Duct destination)
 		{
 			foreach (ProviderModule module in ProviderModules)
@@ -130,6 +131,7 @@ namespace Routed.Layer
 			}
 		}
 
+		// todo: hook into caching
 		public void PullItem(Item item, Duct origin, Duct destination)
 		{
 			NetworkItem networkItem = new NetworkItem(item, origin, destination);
@@ -138,10 +140,10 @@ namespace Routed.Layer
 			UpdateUIs();
 		}
 
+		// todo: hook into caching
 		public bool PushItem(Item item, Duct origin)
 		{
-			// todo: priority system (eg. weapons will go first to weapons then materials)
-			MarkerModule module = MarkerModules.LastOrDefault(markerModule =>
+			MarkerModule module = MarkerModules.OrderByDescending(markerModule => markerModule.Priority).FirstOrDefault(markerModule =>
 			{
 				ItemHandler other = markerModule.GetHandler();
 				if (other == null) return false;
@@ -175,18 +177,15 @@ namespace Routed.Layer
 			}
 		}
 
-		public TagCompound Save()
+		public TagCompound Save() => new TagCompound
 		{
-			return new TagCompound
+			["Tiles"] = Tiles.Select(duct => new TagCompound
 			{
-				["Tiles"] = Tiles.Select(duct => new TagCompound
-				{
-					["Position"] = duct.Position,
-					["Data"] = duct.Save()
-				}).ToList(),
-				["NetworkItems"] = NetworkItems.Select(item => item.Save()).ToList()
-			};
-		}
+				["Position"] = duct.Position,
+				["Data"] = duct.Save()
+			}).ToList(),
+			["NetworkItems"] = NetworkItems.Select(item => item.Save()).ToList()
+		};
 
 		public void Update()
 		{

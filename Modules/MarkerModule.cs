@@ -72,7 +72,7 @@ namespace Routed.Modules
 
 	public class ConsumablesMode : FilterMode
 	{
-		public override bool Check(Item item) => item.consumable;
+		public override bool Check(Item item) => item.potion && item.healLife > 0 || item.healMana > 0 && !item.potion || item.buffType > 0 && !item.summon && item.buffType != BuffID.Rudolph;
 
 		//(item.potion && item.healLife > 0 ||
 		//item.healMana > 0 && !item.potion ||
@@ -130,6 +130,40 @@ namespace Routed.Modules
 	public class MarkerModule : BaseModule, IHasUI
 	{
 		public override int DropItem => ModContent.GetInstance<Routed>().ItemType("MarkerModule" + Mode.GetType().Name.Replace("Mode", ""));
+
+		public int Priority
+		{
+			get
+			{
+				if (Mode == null) return int.MinValue;
+
+				switch (Mode)
+				{
+					case AnyItemsMode _:
+						return -1000;
+					case MaterialsMode _:
+						return -900;
+					case ConsumablesMode _:
+						return -800;
+					case BuildingMode _:
+						return -700;
+					case ModBasedMode _:
+						return -600;
+					case WeaponsMode _:
+					case ToolsMode _:
+					case AccessoriesMode _:
+					case ArmorMode _:
+					case AmmoMode _:
+						return -600;
+					case InInventoryMode _:
+						return 900;
+					case FilteredItemsMode _:
+						return 1000;
+					default:
+						return -10000;
+				}
+			}
+		}
 
 		public Guid UUID { get; set; }
 		public BaseUIPanel UI { get; set; }
