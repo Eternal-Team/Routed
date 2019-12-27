@@ -6,6 +6,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Routed.Modules;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -174,50 +176,62 @@ namespace Routed.UI
 			};
 			panel.Append(buttonTransfer);
 
-			PopulateGrid();
+			UpdateGrid();
 		}
 
-		// todo: do not run a complete repopulation - try to update records first
-		public void PopulateGrid()
+		public void UpdateGrid()
 		{
-			gridSlots.Clear();
-
-			foreach (ProviderModule module in Container.Parent.Network.ProviderModules)
+			// todo: cache
+			Dictionary<int, Item> items = Container.Parent.Network.ProviderModules.SelectMany(module => module.GetHandler()?.Items).Where(item => !item.IsAir).GroupBy(item => item.type).Select(group =>
 			{
-				ItemHandler handler = module.GetHandler();
-				if (handler == null) continue;
+				Item item = new Item();
+				item.SetDefaults(group.Key);
+				item.stack = group.Sum(i => i.stack);
+				return item;
+			}).ToDictionary(x => x.type, x => x);
 
-				for (int i = 0; i < handler.Slots; i++)
+			// remove
+			for (int i = 0; i < gridSlots.Count; i++)
+			{
+				UIRequesterSlot slot = gridSlots.Items[i];
+				if (!items.ContainsKey(slot.Item.type)) gridSlots.Remove(slot);
+			}
+
+			// update
+			List<Item> remaining = new List<Item>();
+			for (int i = 0; i < items.Count; i++)
+			{
+				Item item = items[i];
+				UIRequesterSlot slot = gridSlots.Items.FirstOrDefault(s => s.Item.netID == item.netID);
+				if (slot != null) slot.Item.stack = item.stack;
+				else remaining.Add(item);
+			}
+
+			// add
+			foreach (Item item in remaining)
+			{
+				UIRequesterSlot slot = new UIRequesterSlot
 				{
-					Item item = handler.Items[i];
-					if (item.IsAir) continue;
-
-					UIRequesterSlot slot = new UIRequesterSlot(i)
-					{
-						Width = (SlotSize, 0),
-						Height = (SlotSize, 0),
-						PreviewItem = item
-					};
-					slot.SetPadding(2);
-					int i1 = i;
-					slot.OnClick += (evt, element) => Container.Parent.Network.PullItem(handler.ExtractItem(i1, 10), module.Parent, Container.Parent);
-					gridSlots.Add(slot);
-				}
+					Width = (SlotSize, 0),
+					Height = (SlotSize, 0),
+					Item = item
+				};
+				slot.SetPadding(2);
+				slot.OnClick += (evt, element) => Container.Parent.Network.PullItem(item.type, 10, Container.Parent);
+				gridSlots.Add(slot);
 			}
 		}
 
 		private class UIRequesterSlot : BaseElement
 		{
-			private int index;
-			public Item PreviewItem;
+			public Item Item;
 
-			public UIRequesterSlot(int index)
+			public UIRequesterSlot()
 			{
-				this.index = index;
 				Width = Height = (40, 0);
 			}
 
-			public override int CompareTo(object obj) => index.CompareTo((obj as UIRequesterSlot)?.index);
+			public override int CompareTo(object obj) => Item.type.CompareTo((obj as UIRequesterSlot)?.Item.type);
 
 			private void DrawItem(SpriteBatch spriteBatch, Item item, float scale)
 			{
@@ -272,7 +286,7 @@ namespace Routed.UI
 
 				float scale = Math.Min(InnerDimensions.Width / Main.inventoryBackTexture.Width, InnerDimensions.Height / Main.inventoryBackTexture.Height);
 
-				if (PreviewItem != null && !PreviewItem.IsAir) DrawItem(spriteBatch, PreviewItem, scale);
+				if (Item != null && !Item.IsAir) DrawItem(spriteBatch, Item, scale);
 			}
 		}
 	}

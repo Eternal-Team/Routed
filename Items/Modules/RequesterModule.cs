@@ -1,5 +1,4 @@
-﻿
-namespace Routed.Items
+﻿namespace Routed.Items
 {
 	public class RequesterModule : BaseModuleItem<Modules.RequesterModule>
 	{

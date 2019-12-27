@@ -27,6 +27,8 @@ namespace Routed.Modules
 		public ItemHandler Handler { get; }
 		public ItemHandler ReturnHandler;
 
+		// todo: queue for requests
+
 		private int timer;
 
 		public RequesterModule()

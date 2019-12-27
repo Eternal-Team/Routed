@@ -37,7 +37,7 @@ namespace Routed.Modules
 			if (Utility.TryGetTileEntity(Parent.Position, out ModTileEntity te) && te is IItemHandler handler) return handler.Handler;
 			return null;
 		}
-		
+
 		public override void Load(TagCompound tag)
 		{
 			UUID = tag.Get<Guid>("UUID");

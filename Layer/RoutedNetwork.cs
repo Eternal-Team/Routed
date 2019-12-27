@@ -161,7 +161,7 @@ namespace Routed.Layer
 		{
 			foreach (UIElement element in BaseLibrary.BaseLibrary.PanelGUI.Elements)
 			{
-				if (element is RequesterModulePanel panel) panel.PopulateGrid();
+				if (element is RequesterModulePanel panel) panel.UpdateGrid();
 			}
 		}
 	}
