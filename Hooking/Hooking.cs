@@ -174,7 +174,7 @@ namespace Routed
 					if (Network == null) return availableItems;
 
 					// todo: cache
-					foreach (Item item in Network.MarkerModules.SelectMany(module => module.GetHandler()?.Items))
+					foreach (Item item in Network.ProviderModules.SelectMany(module => module.GetHandler()?.Items))
 					{
 						if (item.IsAir) continue;
 

@@ -182,7 +182,7 @@ namespace Routed.UI
 		{
 			gridSlots.Clear();
 
-			foreach (MarkerModule module in Container.Parent.Network.MarkerModules)
+			foreach (ProviderModule module in Container.Parent.Network.ProviderModules)
 			{
 				ItemHandler handler = module.GetHandler();
 				if (handler == null) continue;

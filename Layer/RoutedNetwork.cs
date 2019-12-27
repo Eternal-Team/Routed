@@ -88,8 +88,7 @@ namespace Routed.Layer
 
 		public void PullItem(int type, int count, Duct destination)
 		{
-			// todo: switch to provider modules
-			foreach (MarkerModule module in MarkerModules)
+			foreach (ProviderModule module in ProviderModules)
 			{
 				ItemHandler handler = module.GetHandler();
 				if (handler == null) continue;
