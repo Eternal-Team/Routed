@@ -15,6 +15,25 @@ using Terraria.UI;
 
 namespace Routed.Layer
 {
+	public class AutoAddDictionary<T, K> : Dictionary<T,K>
+	{
+		public new K this[T key]
+		{
+			get
+			{
+				if (TryGetValue(key, out K value)) return value;
+				
+				Add(key, default);
+				return base[key];
+			}
+			set
+			{
+				if (ContainsKey(key)) base[key] = value;
+				else Add(key, value);
+			}
+		}
+	}
+
 	public class RoutedNetwork
 	{
 		public static List<RoutedNetwork> Networks = new List<RoutedNetwork>();
@@ -30,6 +49,8 @@ namespace Routed.Layer
 		public List<ExtractorModule> ExtractorModules => Tiles.Select(duct => duct.Module).OfType<ExtractorModule>().ToList();
 
 		internal Color debugColor;
+
+		public AutoAddDictionary<int, int> ItemCache = new AutoAddDictionary<int, int>();
 
 		public List<NetworkItem> NetworkItems = new List<NetworkItem>();
 
@@ -84,6 +105,8 @@ namespace Routed.Layer
 			}
 
 			foreach (TagCompound compound in tag.GetList<TagCompound>("NetworkItems")) NetworkItems.Add(new NetworkItem(compound));
+
+			RegenerateCache();
 		}
 
 		public void PullItem(int type, int count, Duct destination)
@@ -134,6 +157,24 @@ namespace Routed.Layer
 			return false;
 		}
 
+		public void RegenerateCache()
+		{
+			ItemCache.Clear();
+
+			foreach (ProviderModule module in ProviderModules)
+			{
+				ItemHandler handler = module.GetHandler();
+				if (handler == null) continue;
+
+				foreach (Item item in handler.Items)
+				{
+					if (item.IsAir) continue;
+
+					ItemCache[item.type] += item.stack;
+				}
+			}
+		}
+
 		public TagCompound Save()
 		{
 			return new TagCompound
@@ -149,6 +190,8 @@ namespace Routed.Layer
 
 		public void Update()
 		{
+			Main.NewText($"Currently caching {ItemCache.Count} types");
+
 			for (int i = 0; i < NetworkItems.Count; i++)
 			{
 				NetworkItem item = NetworkItems[i];
