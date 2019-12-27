@@ -19,6 +19,7 @@ namespace Routed.UI
 		private const int Columns = 13;
 		private const int Rows = 6;
 		private const int SlotSize = 44;
+		private new const int Padding = 4;
 
 		public ItemHandler Handler => Container.ReturnHandler;
 		public string GetTexture(Item item) => "Routed/Textures/Modules/RequesterModule";
@@ -36,8 +37,8 @@ namespace Routed.UI
 
 		public override void OnInitialize()
 		{
-			Width = (8 + (SlotSize + 4) * Columns - 4 + 8 + 28 + 16, 0);
-			Height = (8 + 20 + 8 + (SlotSize + 4) * Rows - 4 + 8 + 20 + 8 + (SlotSize + 4) * 2 - 4 + 8 + 16, 0);
+			Width = (60 + (SlotSize + Padding) * Columns - Padding, 0);
+			Height = (96 + (SlotSize + Padding) * (Rows + 2) - Padding * 2, 0);
 			this.Center();
 
 			UITextButton buttonClose = new UITextButton("X")
@@ -61,7 +62,7 @@ namespace Routed.UI
 			{
 				Top = (28, 0),
 				Width = (0, 1),
-				Height = ((SlotSize + 4) * Rows - 4, 0),
+				Height = ((SlotSize + Padding) * Rows - Padding, 0),
 				BorderColor = Color.Transparent,
 				BackgroundColor = Utility.ColorPanel_Selected * 0.75f
 			};
@@ -70,7 +71,8 @@ namespace Routed.UI
 			gridSlots = new UIGrid<UIRequesterSlot>(Columns)
 			{
 				Width = (-26, 1),
-				Height = (0, 1)
+				Height = (0, 1),
+				ListPadding = Padding
 			};
 			panel.Append(gridSlots);
 
@@ -83,18 +85,18 @@ namespace Routed.UI
 			{
 				UIText textRequestedItem = new UIText("Requested Items")
 				{
-					Width = ((SlotSize + 4) * 10 - 4, 0),
+					Width = ((SlotSize + Padding) * 10 - Padding, 0),
 					MarginLeft = 8,
-					Top = (28 + (SlotSize + 4) * Rows - 4 + 8, 0),
+					Top = (36 + (SlotSize + Padding) * Rows - Padding, 0),
 					HorizontalAlignment = HorizontalAlignment.Center
 				};
 				Append(textRequestedItem);
 
 				panel = new UIPanel
 				{
-					Top = (28 + (SlotSize + 4) * Rows - 4 + 8 + 20 + 8, 0),
+					Top = (64 + (SlotSize + Padding) * Rows - Padding, 0),
 					Width = (0, 1),
-					Height = ((SlotSize + 4) * 2 - 4 + 16, 0),
+					Height = (16 + (SlotSize + Padding) * 2 - Padding, 0),
 					BorderColor = Color.Transparent,
 					BackgroundColor = Utility.ColorPanel_Selected * 0.75f
 				};
@@ -102,8 +104,9 @@ namespace Routed.UI
 
 				UIGrid<UIContainerSlot> gridOutout = new UIGrid<UIContainerSlot>(10)
 				{
-					Width = ((SlotSize + 4) * 10 - 2, 0),
-					Height = (0, 1)
+					Width = ((SlotSize + Padding) * 10, 0),
+					Height = (0, 1),
+					ListPadding = Padding
 				};
 				panel.Append(gridOutout);
 
@@ -123,19 +126,20 @@ namespace Routed.UI
 			{
 				UIText textReturnItems = new UIText("Return")
 				{
-					Width = ((SlotSize + 4) * 3 - 4, 0),
+					Width = ((SlotSize + Padding) * 3 - Padding, 0),
 					MarginRight = 8,
 					HAlign = 1,
-					Top = (28 + (SlotSize + 4) * Rows - 4 + 8, 0),
+					Top = (36 + (SlotSize + Padding) * Rows - Padding, 0),
 					HorizontalAlignment = HorizontalAlignment.Center
 				};
 				Append(textReturnItems);
 
 				UIGrid<UIContainerSlot> gridInput = new UIGrid<UIContainerSlot>(3)
 				{
-					Width = ((SlotSize + 4) * 3 - 4, 0),
+					Width = ((SlotSize + Padding) * 3 - Padding, 0),
 					Height = (0, 1),
-					HAlign = 1
+					HAlign = 1,
+					ListPadding = Padding
 				};
 				panel.Append(gridInput);
 
@@ -154,7 +158,7 @@ namespace Routed.UI
 			UIButton buttonTransfer = new UIButton(ModContent.GetTexture("BaseLibrary/Textures/UI/QuickStack"))
 			{
 				VAlign = 0.5f,
-				Left = ((SlotSize + 4) * 10 - 4 + 16 - 10, 0),
+				Left = (6 + (SlotSize + Padding) * 10 - Padding, 0),
 				Width = (20, 0),
 				Height = (20, 0),
 				HoverText = "Transfer items"

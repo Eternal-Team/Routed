@@ -1,0 +1,15 @@
+ItemName.BasicDuct=Basic Duct
+
+ItemName.RequesterModule=Requester Modue
+ItemName.ProviderModule=Provider Module
+ItemName.MarkerModule=Marker Module
+ItemName.ConsumerModule=Consumer Module
+
+ItemName.BasicExtractorModule=Basic Extractor Module
+ItemName.AdvancedExtractorModule=Advanced Extractor Module
+ItemName.EliteExtractorModule=Elite Extractor Module
+
+ItemTooltip.RequesterModule=Allows the player to reqeust items from the network
+ItemTooltip.ProviderModule=Marks an inventory as being able to provide its items to the network
+ItemTooltip.ConsumerModule=Pulls items from the network
+ItemTooltip.MarkerModule=Marks an inventory as being able to receive items

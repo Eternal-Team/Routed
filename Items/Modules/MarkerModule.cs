@@ -16,7 +16,6 @@
 			}
 
 			DisplayName.SetDefault($"{name} Marker Module");
-			Tooltip.SetDefault("Marks an inventory as being able to receive items");
 		}
 	}
 }

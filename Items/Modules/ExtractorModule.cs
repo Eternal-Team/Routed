@@ -9,7 +9,6 @@
 
 		public override void SetStaticDefaults()
 		{
-			DisplayName.SetDefault("Extractor Module");
 			Tooltip.SetDefault($"Pushes items into the network at a rate of {ItemsPerExtraction}/{ExtractionSpeed / 60f:N1}s");
 		}
 	}
