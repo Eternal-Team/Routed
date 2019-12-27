@@ -98,7 +98,7 @@ namespace Routed.Layer
 					Item item = handler.Items[i];
 					if (item.IsAir || item.type != type) continue;
 
-					int extractedAmount = Math.Min(Math.Min(10, count), item.stack);
+					int extractedAmount = Math.Min(count, item.stack);
 					Item extracted = handler.ExtractItem(i, extractedAmount);
 					PullItem(extracted, module.Parent, destination);
 					count -= extractedAmount;

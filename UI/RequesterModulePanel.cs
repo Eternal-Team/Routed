@@ -26,6 +26,7 @@ namespace Routed.UI
 		public ItemHandler Handler => Container.ReturnHandler;
 		public string GetTexture(Item item) => "Routed/Textures/Modules/RequesterModule";
 		private UIGrid<UIRequesterSlot> gridSlots;
+		private UIText textQueue;
 
 		public override void OnActivate()
 		{
@@ -52,6 +53,13 @@ namespace Routed.UI
 			};
 			buttonClose.OnClick += (evt, element) => BaseLibrary.BaseLibrary.PanelGUI.UI.CloseUI(Container);
 			Append(buttonClose);
+
+			textQueue = new UIText("Queue")
+			{
+				Width = (0, 0.5f),
+				HorizontalAlignment = HorizontalAlignment.Left
+			};
+			Append(textQueue);
 
 			UIText textLabel = new UIText("Requester Module")
 			{
@@ -173,10 +181,18 @@ namespace Routed.UI
 					Container.ReturnHandler.InsertItem(ref item);
 					if (!item.IsAir) break;
 				}
+				Recipe.FindRecipes();
 			};
 			panel.Append(buttonTransfer);
 
 			UpdateGrid();
+		}
+
+		public override void Update(GameTime gameTime)
+		{
+			base.Update(gameTime);
+
+			textQueue.Text = $"{Container.RequestQueue.Count} queued item{(Container.RequestQueue.Count != 1 ? "s" : "")}";
 		}
 
 		public void UpdateGrid()
@@ -201,7 +217,7 @@ namespace Routed.UI
 			List<Item> remaining = new List<Item>();
 			for (int i = 0; i < items.Count; i++)
 			{
-				Item item = items[i];
+				Item item = items.ElementAt(i).Value;
 				UIRequesterSlot slot = gridSlots.Items.FirstOrDefault(s => s.Item.netID == item.netID);
 				if (slot != null) slot.Item.stack = item.stack;
 				else remaining.Add(item);
@@ -217,7 +233,7 @@ namespace Routed.UI
 					Item = item
 				};
 				slot.SetPadding(2);
-				slot.OnClick += (evt, element) => Container.Parent.Network.PullItem(item.type, 10, Container.Parent);
+				slot.OnClick += (evt, element) => Container.RequestItem(item.type, 10);
 				gridSlots.Add(slot);
 			}
 		}

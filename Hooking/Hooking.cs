@@ -55,8 +55,8 @@ namespace Routed
 						{
 							if (!item.IsAir)
 							{
-								Network.PullItem(item.type, item.stack, (BaseLibrary.BaseLibrary.PanelGUI.Elements.First(panel => panel is RequesterModulePanel) as RequesterModulePanel)?.Container.Parent);
-								Main.NewText($"Requesting {item.HoverName}");
+								RequesterModulePanel ui = BaseLibrary.BaseLibrary.PanelGUI.Elements.First(panel => panel is RequesterModulePanel) as RequesterModulePanel;
+								ui?.Container.RequestItem(item.type, item.stack);
 							}
 						}
 

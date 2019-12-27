@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Routed.Layer;
 using System;
+using System.Collections.Generic;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
@@ -25,9 +26,9 @@ namespace Routed.Modules
 		public LegacySoundStyle OpenSound => SoundID.Item1;
 
 		public ItemHandler Handler { get; }
-		public ItemHandler ReturnHandler;
 
-		// todo: queue for requests
+		public Queue<(int type, int count)> RequestQueue = new Queue<(int type, int count)>();
+		public ItemHandler ReturnHandler;
 
 		private int timer;
 
@@ -72,6 +73,11 @@ namespace Routed.Modules
 			Handler.DropItems(new Rectangle(Parent.Position.X * 16, Parent.Position.Y * 16, 16, 16));
 		}
 
+		public void RequestItem(int type, int stack)
+		{
+			RequestQueue.Enqueue((type, stack));
+		}
+
 		public override TagCompound Save() => new TagCompound
 		{
 			["UUID"] = UUID,
@@ -85,6 +91,13 @@ namespace Routed.Modules
 
 			if (timer++ < maxTimer) return;
 			timer = 0;
+
+			if (RequestQueue.Count > 0)
+			{
+				(int type, int count) = RequestQueue.Dequeue();
+
+				Parent.Network.PullItem(type, count, Parent);
+			}
 
 			for (int i = 0; i < ReturnHandler.Slots; i++)
 			{
