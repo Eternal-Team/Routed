@@ -68,10 +68,8 @@ namespace Routed.Modules
 						if (element is RequesterModulePanel panel) PanelUI.Instance.CloseUI(panel.Container);
 					}
 
-					PanelUI.Instance.OpenUI(this);
+					PanelUI.Instance.HandleUI(this);
 				}
-
-				Recipe.FindRecipes();
 			}
 
 			return true;

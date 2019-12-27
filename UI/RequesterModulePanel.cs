@@ -16,32 +16,35 @@ using Terraria.UI.Chat;
 
 namespace Routed.UI
 {
+	// todo: search bar and sorting modes
 	public class RequesterModulePanel : BaseUIPanel<RequesterModule>, IItemHandlerUI
 	{
 		private const int Columns = 13;
 		private const int Rows = 6;
 		private const int SlotSize = 44;
 		private new const int Padding = 4;
-
 		public ItemHandler Handler => Container.ReturnHandler;
 		public string GetTexture(Item item) => "Routed/Textures/Modules/RequesterModule";
 		private UIGrid<UIRequesterSlot> gridSlots;
+		private BaseLibrary.Ref<string> search = new BaseLibrary.Ref<string>("");
 		private UIText textQueue;
 
 		public override void OnActivate()
 		{
 			Hooking.Network = Container.Parent.Network;
+			Recipe.FindRecipes();
 		}
 
 		public override void OnDeactivate()
 		{
 			Hooking.Network = null;
+			Recipe.FindRecipes();
 		}
 
 		public override void OnInitialize()
 		{
 			Width = (60 + (SlotSize + Padding) * Columns - Padding, 0);
-			Height = (96 + (SlotSize + Padding) * (Rows + 2) - Padding * 2, 0);
+			Height = (144 + (SlotSize + Padding) * (Rows + 2) - Padding * 2, 0);
 			this.Center();
 
 			UITextButton buttonClose = new UITextButton("X")
@@ -84,6 +87,8 @@ namespace Routed.UI
 				Height = (0, 1),
 				ListPadding = Padding
 			};
+			// todo: regex mode
+			gridSlots.SearchSelector += item => string.IsNullOrWhiteSpace(search.Value) || item.Item.HoverName.ToLower().Contains(search.Value.ToLower());
 			panel.Append(gridSlots);
 
 			gridSlots.scrollbar.HAlign = 1;
@@ -91,20 +96,32 @@ namespace Routed.UI
 			gridSlots.scrollbar.Height = (0, 1);
 			panel.Append(gridSlots.scrollbar);
 
+			UITextInput inputSearch = new UITextInput(ref search)
+			{
+				Top = (36 + (SlotSize + Padding) * Rows - Padding, 0),
+				Width = (0, 1),
+				Height = (40, 0),
+				RenderPanel = true,
+				VerticalAlignment = VerticalAlignment.Center,
+				HintText = "Search"
+			};
+			inputSearch.OnTextChange += () => gridSlots.Search();
+			Append(inputSearch);
+
 			// requested items
 			{
 				UIText textRequestedItem = new UIText("Requested Items")
 				{
 					Width = ((SlotSize + Padding) * 10 - Padding, 0),
 					MarginLeft = 8,
-					Top = (36 + (SlotSize + Padding) * Rows - Padding, 0),
+					Top = (84 + (SlotSize + Padding) * Rows - Padding, 0),
 					HorizontalAlignment = HorizontalAlignment.Center
 				};
 				Append(textRequestedItem);
 
 				panel = new UIPanel
 				{
-					Top = (64 + (SlotSize + Padding) * Rows - Padding, 0),
+					Top = (112 + (SlotSize + Padding) * Rows - Padding, 0),
 					Width = (0, 1),
 					Height = (16 + (SlotSize + Padding) * 2 - Padding, 0),
 					BorderColor = Color.Transparent,
@@ -139,7 +156,7 @@ namespace Routed.UI
 					Width = ((SlotSize + Padding) * 3 - Padding, 0),
 					MarginRight = 8,
 					HAlign = 1,
-					Top = (36 + (SlotSize + Padding) * Rows - Padding, 0),
+					Top = (84 + (SlotSize + Padding) * Rows - Padding, 0),
 					HorizontalAlignment = HorizontalAlignment.Center
 				};
 				Append(textReturnItems);
@@ -181,6 +198,7 @@ namespace Routed.UI
 					Container.ReturnHandler.InsertItem(ref item);
 					if (!item.IsAir) break;
 				}
+
 				Recipe.FindRecipes();
 			};
 			panel.Append(buttonTransfer);
@@ -244,7 +262,8 @@ namespace Routed.UI
 
 			public UIRequesterSlot()
 			{
-				Width = Height = (40, 0);
+				Width = (40, 0);
+				Height = (40, 0);
 			}
 
 			public override int CompareTo(object obj) => Item.type.CompareTo((obj as UIRequesterSlot)?.Item.type);
