@@ -4,6 +4,7 @@ using ContainerLibrary;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Routed.Layer;
+using Routed.UI;
 using System;
 using System.Collections.Generic;
 using Terraria;
@@ -11,6 +12,7 @@ using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
+using Terraria.UI;
 
 namespace Routed.Modules
 {
@@ -55,8 +57,22 @@ namespace Routed.Modules
 
 		public override bool Interact()
 		{
-			BaseLibrary.BaseLibrary.PanelGUI.UI.HandleUI(this);
-			if (Main.netMode != NetmodeID.Server) Recipe.FindRecipes();
+			if (Main.netMode != NetmodeID.Server)
+			{
+				if (UI != null) PanelUI.Instance.CloseUI(this);
+				else
+				{
+					for (int i = 0; i < PanelUI.Instance.Elements.Count; i++)
+					{
+						UIElement element = PanelUI.Instance.Elements[i];
+						if (element is RequesterModulePanel panel) PanelUI.Instance.CloseUI(panel.Container);
+					}
+
+					PanelUI.Instance.OpenUI(this);
+				}
+
+				Recipe.FindRecipes();
+			}
 
 			return true;
 		}
@@ -87,7 +103,7 @@ namespace Routed.Modules
 
 		public override void Update()
 		{
-			if (UI != null && Vector2.DistanceSquared(Main.LocalPlayer.position, new Vector2(Parent.Position.X, Parent.Position.Y) * 16) > 9216) BaseLibrary.BaseLibrary.PanelGUI.UI.CloseUI(this);
+			if (UI != null && Vector2.DistanceSquared(Main.LocalPlayer.position, new Vector2(Parent.Position.X, Parent.Position.Y) * 16) > 9216) PanelUI.Instance.CloseUI(this);
 
 			if (timer++ < maxTimer) return;
 			timer = 0;

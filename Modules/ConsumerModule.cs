@@ -33,7 +33,7 @@ namespace Routed.Modules
 
 		public override bool Interact()
 		{
-			BaseLibrary.BaseLibrary.PanelGUI.UI.HandleUI(this);
+			PanelUI.Instance.HandleUI(this);
 
 			return true;
 		}

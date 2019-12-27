@@ -36,7 +36,7 @@ namespace Routed.UI
 				Padding = (0, 0, 0, 0),
 				RenderPanel = false
 			};
-			buttonClose.OnClick += (evt, element) => BaseLibrary.BaseLibrary.PanelGUI.UI.CloseUI(Container);
+			buttonClose.OnClick += (evt, element) => PanelUI.Instance.CloseUI(Container);
 			Append(buttonClose);
 
 			UIGrid<UIConsumerSlot> gridSlots = new UIGrid<UIConsumerSlot>(3)

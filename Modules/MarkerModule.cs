@@ -156,7 +156,7 @@ namespace Routed.Modules
 
 		public override bool Interact()
 		{
-			if (Mode is FilteredItemsMode || Mode is ModBasedMode) BaseLibrary.BaseLibrary.PanelGUI.UI.HandleUI(this);
+			if (Mode is FilteredItemsMode || Mode is ModBasedMode) PanelUI.Instance.HandleUI(this);
 
 			return true;
 		}

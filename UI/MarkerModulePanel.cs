@@ -24,7 +24,7 @@ namespace Routed.UI
 				Padding = (0, 0, 0, 0),
 				RenderPanel = false
 			};
-			buttonClose.OnClick += (evt, element) => BaseLibrary.BaseLibrary.PanelGUI.UI.CloseUI(Container);
+			buttonClose.OnClick += (evt, element) => PanelUI.Instance.CloseUI(Container);
 			Append(buttonClose);
 
 			UIText textLabel = new UIText("Marker Module")

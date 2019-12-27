@@ -81,7 +81,7 @@ namespace Routed.Items
 		public override void KillMultiTile(int i, int j, int frameX, int frameY)
 		{
 			TestChestTE drawer = Utility.GetTileEntity<TestChestTE>(i, j);
-			BaseLibrary.BaseLibrary.PanelGUI.UI.CloseUI(drawer);
+			PanelUI.Instance.CloseUI(drawer);
 
 			Item.NewItem(i * 16, j * 16, 32, 32, ModContent.ItemType<TestChest>());
 			drawer.Kill(i, j);
@@ -92,7 +92,7 @@ namespace Routed.Items
 			TestChestTE drawer = Utility.GetTileEntity<TestChestTE>(i, j);
 			if (drawer == null) return false;
 
-			BaseLibrary.BaseLibrary.PanelGUI.UI.HandleUI(drawer);
+			PanelUI.Instance.HandleUI(drawer);
 
 			return true;
 		}
@@ -134,7 +134,7 @@ namespace Routed.Items
 				Padding = (0, 0, 0, 0),
 				RenderPanel = false
 			};
-			buttonClose.OnClick += (evt, element) => BaseLibrary.BaseLibrary.PanelGUI.UI.CloseUI(Container);
+			buttonClose.OnClick += (evt, element) => PanelUI.Instance.CloseUI(Container);
 			Append(buttonClose);
 
 			UIText textLabel = new UIText("Test Chest")
