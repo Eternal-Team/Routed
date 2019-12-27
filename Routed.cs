@@ -51,6 +51,7 @@ namespace Routed
 			RoutedLayer = new RoutedLayer();
 			markerModules = new Dictionary<string, Type>();
 
+			Duct.Initialize();
 			Hooking.Initialize();
 
 			if (!Main.dedServ) MouseEvents.ButtonPressed += args => args.Button == MouseButton.Right && RoutedLayer.Interact();
