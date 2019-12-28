@@ -94,9 +94,9 @@ namespace Routed.Layer
 			{
 				Duct element = new Duct
 				{
-					Position = compound.Get<Point16>("Position"),
-					Layer = layer,
-					Network = this
+						Position = compound.Get<Point16>("Position"),
+						Layer = layer,
+						Network = this
 				};
 				element.Load(compound.GetCompound("Data"));
 
@@ -109,7 +109,6 @@ namespace Routed.Layer
 			RegenerateCache();
 		}
 
-		// todo: hook into caching
 		public void PullItem(int type, int count, Duct destination)
 		{
 			foreach (ProviderModule module in ProviderModules)
@@ -131,11 +130,13 @@ namespace Routed.Layer
 			}
 		}
 
-		// todo: hook into caching
 		public void PullItem(Item item, Duct origin, Duct destination)
 		{
 			NetworkItem networkItem = new NetworkItem(item, origin, destination);
 			NetworkItems.Add(networkItem);
+
+			ItemCache[item.type] -= item.stack;
+			if (ItemCache[item.type] <= 0) ItemCache.Remove(item.type);
 
 			UpdateUIs();
 		}
@@ -179,17 +180,17 @@ namespace Routed.Layer
 
 		public TagCompound Save() => new TagCompound
 		{
-			["Tiles"] = Tiles.Select(duct => new TagCompound
-			{
-				["Position"] = duct.Position,
-				["Data"] = duct.Save()
-			}).ToList(),
-			["NetworkItems"] = NetworkItems.Select(item => item.Save()).ToList()
+				["Tiles"] = Tiles.Select(duct => new TagCompound
+				{
+						["Position"] = duct.Position,
+						["Data"] = duct.Save()
+				}).ToList(),
+				["NetworkItems"] = NetworkItems.Select(item => item.Save()).ToList()
 		};
 
 		public void Update()
 		{
-			Main.NewText($"Currently caching {ItemCache.Count} types");
+			Main.NewText($"Currently caching {ItemCache.Count} types and {ItemCache.Sum(pair => pair.Value)} items");
 
 			for (int i = 0; i < NetworkItems.Count; i++)
 			{
