@@ -1,6 +1,7 @@
 ﻿using BaseLibrary;
 using ContainerLibrary;
 using LayerLibrary;
+using Routed.Modules;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.DataStructures;
@@ -60,8 +61,14 @@ namespace Routed.Layer
 					{
 						BaseModule module = duct.Module;
 						ItemHandler handler = module.GetHandler();
+
+						int count = item.stack;
+
 						handler?.InsertItem(ref item);
-						duct.Module.Parent.Network.UpdateUIs();
+
+						if (module is MarkerModule) duct.Network.ItemCache[item.type] += count - item.stack;
+
+						duct.Network.UpdateUIs();
 					}
 
 					if (!item.IsAir)
