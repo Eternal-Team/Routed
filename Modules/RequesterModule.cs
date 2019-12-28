@@ -110,7 +110,7 @@ namespace Routed.Modules
 			{
 				(int type, int count) = RequestQueue.Dequeue();
 
-				Parent.Network.PullItem(type, count, Parent);
+				Network.PullItem(type, count, Parent);
 			}
 
 			for (int i = 0; i < ReturnHandler.Slots; i++)
@@ -119,7 +119,7 @@ namespace Routed.Modules
 
 				Item item = ReturnHandler.ExtractItem(i, 100);
 
-				if (Parent.Network.PushItem(item, Parent)) break;
+				if (Network.PushItem(item, Parent)) break;
 
 				ReturnHandler.InsertItem(ref item);
 			}

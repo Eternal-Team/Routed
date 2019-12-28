@@ -31,7 +31,7 @@ namespace Routed.UI
 
 		public override void OnActivate()
 		{
-			Hooking.Network = Container.Parent.Network;
+			Hooking.Network = Container.Network;
 			Recipe.FindRecipes();
 		}
 
@@ -216,7 +216,7 @@ namespace Routed.UI
 		public void UpdateGrid()
 		{
 			// todo: cache
-			Dictionary<int, Item> items = Container.Parent.Network.ProviderModules.SelectMany(module => module.GetHandler()?.Items).Where(item => !item.IsAir).GroupBy(item => item.type).Select(group =>
+			Dictionary<int, Item> items = Container.Network.ProviderModules.SelectMany(module => module.GetHandler()?.Items).Where(item => !item.IsAir).GroupBy(item => item.type).Select(group =>
 			{
 				Item item = new Item();
 				item.SetDefaults(group.Key);

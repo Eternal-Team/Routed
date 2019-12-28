@@ -11,6 +11,8 @@ namespace Routed.Layer
 		public abstract int DropItem { get; }
 		public Duct Parent;
 
+		public RoutedNetwork Network => Parent.Network;
+
 		public virtual void Draw(SpriteBatch spriteBatch)
 		{
 		}

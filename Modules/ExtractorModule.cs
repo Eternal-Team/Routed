@@ -84,7 +84,7 @@ namespace Routed.Modules
 
 				Item item = handler.ExtractItem(i, ItemsPerExtraction);
 
-				if (Parent.Network.PushItem(item, Parent)) break;
+				if (Network.PushItem(item, Parent)) break;
 
 				handler.InsertItem(ref item);
 			}

@@ -141,7 +141,6 @@ namespace Routed.Layer
 			UpdateUIs();
 		}
 
-		// todo: hook into caching
 		public bool PushItem(Item item, Duct origin)
 		{
 			MarkerModule module = MarkerModules.OrderByDescending(markerModule => markerModule.Priority).FirstOrDefault(markerModule =>
