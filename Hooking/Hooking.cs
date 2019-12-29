@@ -1,4 +1,5 @@
-﻿using ContainerLibrary;
+﻿using BaseLibrary.UI;
+using ContainerLibrary;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Mono.Cecil.Cil;
@@ -33,11 +34,10 @@ namespace Routed
 			IL.Terraria.Main.DrawInventory += Main_DrawInventory;
 		}
 
-		private static void Main_DrawInventory(ILContext il)
+		private static void RequestItems(ILCursor cursor)
 		{
-			ILCursor cursor = new ILCursor(il);
 			ILLabel label = cursor.DefineLabel();
-
+			
 			if (cursor.TryGotoNext(MoveType.AfterLabel, i => i.MatchCallvirt<Player>("IsStackingItems"), i => i.MatchBrtrue(out _), i => i.MatchLdsfld<Main>("mouseLeftRelease"), i => i.MatchBrfalse(out _)))
 			{
 				cursor.Index += 6;
@@ -47,7 +47,8 @@ namespace Routed
 				{
 					if (indexes.Contains(Main.availableRecipe[index]))
 					{
-						if (Network == null) return false;
+						if (Network == null)
+							return false;
 
 						Recipe recipe = Main.recipe[Main.availableRecipe[index]];
 
@@ -55,7 +56,7 @@ namespace Routed
 						{
 							if (!item.IsAir)
 							{
-								RequesterModulePanel ui = BaseLibrary.BaseLibrary.PanelGUI.Elements.First(panel => panel is RequesterModulePanel) as RequesterModulePanel;
+								RequesterModulePanel ui = PanelUI.Instance.Elements.First(panel => panel is RequesterModulePanel) as RequesterModulePanel;
 								ui?.Container.RequestItem(item.type, item.stack);
 							}
 						}
@@ -74,7 +75,10 @@ namespace Routed
 
 				cursor.MarkLabel(label);
 			}
+		}
 
+		private static void DrawTicks(ILCursor cursor)
+		{
 			if (cursor.TryGotoNext(MoveType.AfterLabel, i => i.MatchCall<ItemSlot>("Draw"), i => i.MatchStsfld<Main>("inventoryBack"), i => i.MatchLdloc(136)))
 			{
 				cursor.Index += 3;
@@ -84,7 +88,8 @@ namespace Routed
 				cursor.Emit(OpCodes.Ldloc, 138);
 				cursor.EmitDelegate<Action<int, int, int>>((index, x, y) =>
 				{
-					if (indexes.Contains(Main.availableRecipe[index])) Main.spriteBatch.Draw(textureTick, new Vector2(x + 6, y + 6), Color.Red);
+					if (indexes.Contains(Main.availableRecipe[index]))
+						Main.spriteBatch.Draw(textureTick, new Vector2(x + 6, y + 6), Color.Red);
 				});
 			}
 
@@ -97,9 +102,19 @@ namespace Routed
 				cursor.Emit(OpCodes.Ldloc, 169);
 				cursor.EmitDelegate<Action<int, int, int>>((index, x, y) =>
 				{
-					if (indexes.Contains(Main.availableRecipe[index])) Main.spriteBatch.Draw(textureTick, new Vector2(x + 6, y + 6), Color.Red);
+					if (indexes.Contains(Main.availableRecipe[index]))
+						Main.spriteBatch.Draw(textureTick, new Vector2(x + 6, y + 6), Color.Red);
 				});
 			}
+		}
+
+		private static void Main_DrawInventory(ILContext il)
+		{
+			ILCursor cursor = new ILCursor(il);
+
+			RequestItems(cursor);
+			
+			DrawTicks(cursor);
 		}
 
 		private static void Recipe_Create(ILContext il)

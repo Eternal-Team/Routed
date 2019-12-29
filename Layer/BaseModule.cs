@@ -9,23 +9,19 @@ namespace Routed.Layer
 	public abstract class BaseModule
 	{
 		public abstract int DropItem { get; }
-		public Duct Parent;
 
 		public RoutedNetwork Network => Parent.Network;
+		public Duct Parent;
 
 		public virtual void Draw(SpriteBatch spriteBatch)
 		{
 		}
 
-		public virtual ItemHandler GetHandler() => null;
-
-		public virtual bool Interact() => false;
-
-		public virtual bool IsItemValid(Item item) => true;
-
-		public virtual void Load(TagCompound tag)
+		public virtual void Update()
 		{
 		}
+
+		public virtual ItemHandler GetHandler() => null;
 
 		public virtual void OnPlace(BaseModuleItem item)
 		{
@@ -35,9 +31,13 @@ namespace Routed.Layer
 		{
 		}
 
+		public virtual bool Interact() => false;
+
+		public virtual bool IsItemValid(Item item) => true;
+
 		public virtual TagCompound Save() => new TagCompound();
 
-		public virtual void Update()
+		public virtual void Load(TagCompound tag)
 		{
 		}
 	}

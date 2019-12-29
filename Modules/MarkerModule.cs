@@ -23,11 +23,11 @@ namespace Routed.Modules
 
 		public abstract bool Check(Item item);
 
+		public virtual TagCompound Save() => new TagCompound();
+		
 		public virtual void Load(TagCompound tag)
 		{
 		}
-
-		public virtual TagCompound Save() => new TagCompound();
 	}
 
 	public class AnyItemsMode : FilterMode
@@ -188,28 +188,13 @@ namespace Routed.Modules
 			return null;
 		}
 
+		public override bool IsItemValid(Item item) => Mode.Check(item);
+
 		public override bool Interact()
 		{
 			if (Mode is FilteredItemsMode || Mode is ModBasedMode) PanelUI.Instance.HandleUI(this);
 
 			return true;
-		}
-
-		public override bool IsItemValid(Item item) => Mode.Check(item);
-
-		public override void Load(TagCompound tag)
-		{
-			UUID = tag.Get<Guid>("UUID");
-
-			TagCompound mode = tag.GetCompound("Mode");
-
-			Type type = Type.GetType(mode.GetString("Name"));
-			if (type != null)
-			{
-				Mode = (FilterMode)Activator.CreateInstance(type);
-				Mode.Module = this;
-				Mode.Load(mode.GetCompound("Data"));
-			}
 		}
 
 		public override void OnPlace(BaseModuleItem item)
@@ -231,5 +216,20 @@ namespace Routed.Modules
 				["Data"] = Mode.Save()
 			}
 		};
+
+		public override void Load(TagCompound tag)
+		{
+			UUID = tag.Get<Guid>("UUID");
+
+			TagCompound mode = tag.GetCompound("Mode");
+
+			Type type = Type.GetType(mode.GetString("Name"));
+			if (type != null)
+			{
+				Mode = (FilterMode)Activator.CreateInstance(type);
+				Mode.Module = this;
+				Mode.Load(mode.GetCompound("Data"));
+			}
+		}
 	}
 }

@@ -46,71 +46,21 @@ namespace Routed.Layer
 
 		public List<ExtractorModule> ExtractorModules => Tiles.Select(duct => duct.Module).OfType<ExtractorModule>().ToList();
 
-		internal Color debugColor;
-
 		public AutoAddDictionary<int, int> ItemCache = new AutoAddDictionary<int, int>();
 
 		public List<NetworkItem> NetworkItems = new List<NetworkItem>();
 
-		public List<Duct> Tiles;
+		public List<Duct> Tiles = new List<Duct>();
 
-		public RoutedNetwork()
+		internal RoutedNetwork()
 		{
 			Networks.Add(this);
-
-			debugColor = Utility.RandomColor();
-		}
-
-		public void CheckPaths()
-		{
-			IEnumerable<Point16> tiles = Tiles.Select(duct => duct.Position).ToList();
-
-			foreach (NetworkItem item in NetworkItems.Where(item => item.path.Any(position => !tiles.Contains(position))))
-			{
-				item.path = Pathfinding.FindPath(Routed.RoutedLayer[item.CurrentPosition], item.destination);
-			}
-		}
-
-		public void Draw(SpriteBatch spriteBatch)
-		{
-			foreach (NetworkItem item in NetworkItems)
-			{
-				Vector2 previous = item.PreviousPosition.ToScreenCoordinates(false) + new Vector2(8);
-				Vector2 current = item.CurrentPosition.ToScreenCoordinates(false) + new Vector2(8);
-
-				Vector2 position = Vector2.Lerp(previous, current, item.timer / (float)NetworkItem.speed);
-
-				spriteBatch.DrawItemInWorld(item.item, position, new Vector2(14));
-			}
-		}
-
-		public void Load(TagCompound tag)
-		{
-			RoutedLayer layer = Routed.RoutedLayer;
-			Tiles = new List<Duct>();
-			NetworkItems = new List<NetworkItem>();
-
-			foreach (TagCompound compound in tag.GetList<TagCompound>("Tiles"))
-			{
-				Duct element = new Duct
-				{
-						Position = compound.Get<Point16>("Position"),
-						Layer = layer,
-						Network = this
-				};
-				element.Load(compound.GetCompound("Data"));
-
-				layer[element.Position] = element;
-				Tiles.Add(element);
-			}
-
-			foreach (TagCompound compound in tag.GetList<TagCompound>("NetworkItems")) NetworkItems.Add(new NetworkItem(compound));
-
-			RegenerateCache();
 		}
 
 		public void PullItem(int type, int count, Duct destination)
 		{
+			// note: return false if count>0 at the end of the loop, otherwise true?
+
 			foreach (ProviderModule module in ProviderModules)
 			{
 				ItemHandler handler = module.GetHandler();
@@ -130,19 +80,9 @@ namespace Routed.Layer
 			}
 		}
 
-		public void PullItem(Item item, Duct origin, Duct destination)
-		{
-			NetworkItem networkItem = new NetworkItem(item, origin, destination);
-			NetworkItems.Add(networkItem);
-
-			ItemCache[item.type] -= item.stack;
-			if (ItemCache[item.type] <= 0) ItemCache.Remove(item.type);
-
-			UpdateUIs();
-		}
-
 		public bool PushItem(Item item, Duct origin)
 		{
+			// bug: will drop items on nearly full stacks
 			MarkerModule module = MarkerModules.OrderByDescending(markerModule => markerModule.Priority).FirstOrDefault(markerModule =>
 			{
 				ItemHandler other = markerModule.GetHandler();
@@ -159,7 +99,55 @@ namespace Routed.Layer
 			return false;
 		}
 
-		public void RegenerateCache()
+		internal void CheckPaths()
+		{
+			IEnumerable<Point16> tiles = Tiles.Select(duct => duct.Position).ToList();
+
+			foreach (NetworkItem item in NetworkItems.Where(item => item.path.Any(position => !tiles.Contains(position))))
+			{
+				item.path = Pathfinding.FindPath(Routed.RoutedLayer[item.CurrentPosition], item.destination);
+			}
+		}
+
+		internal void Draw(SpriteBatch spriteBatch)
+		{
+			foreach (NetworkItem item in NetworkItems)
+			{
+				Vector2 previous = item.PreviousPosition.ToScreenCoordinates(false) + new Vector2(8);
+				Vector2 current = item.CurrentPosition.ToScreenCoordinates(false) + new Vector2(8);
+
+				Vector2 position = Vector2.Lerp(previous, current, item.timer / (float)NetworkItem.speed);
+
+				spriteBatch.DrawItemInWorld(item.item, position, new Vector2(14));
+			}
+		}
+
+		internal void Load(TagCompound tag)
+		{
+			RoutedLayer layer = Routed.RoutedLayer;
+			Tiles = new List<Duct>();
+			NetworkItems = new List<NetworkItem>();
+
+			foreach (TagCompound compound in tag.GetList<TagCompound>("Tiles"))
+			{
+				Duct element = new Duct
+				{
+					Position = compound.Get<Point16>("Position"),
+					Layer = layer,
+					Network = this
+				};
+				element.Load(compound.GetCompound("Data"));
+
+				layer[element.Position] = element;
+				Tiles.Add(element);
+			}
+
+			foreach (TagCompound compound in tag.GetList<TagCompound>("NetworkItems")) NetworkItems.Add(new NetworkItem(compound));
+
+			RegenerateCache();
+		}
+
+		internal void RegenerateCache()
 		{
 			ItemCache.Clear();
 
@@ -177,17 +165,17 @@ namespace Routed.Layer
 			}
 		}
 
-		public TagCompound Save() => new TagCompound
+		internal TagCompound Save() => new TagCompound
 		{
-				["Tiles"] = Tiles.Select(duct => new TagCompound
-				{
-						["Position"] = duct.Position,
-						["Data"] = duct.Save()
-				}).ToList(),
-				["NetworkItems"] = NetworkItems.Select(item => item.Save()).ToList()
+			["Tiles"] = Tiles.Select(duct => new TagCompound
+			{
+				["Position"] = duct.Position,
+				["Data"] = duct.Save()
+			}).ToList(),
+			["NetworkItems"] = NetworkItems.Select(item => item.Save()).ToList()
 		};
 
-		public void Update()
+		internal void Update()
 		{
 			Main.NewText($"Currently caching {ItemCache.Count} types and {ItemCache.Sum(pair => pair.Value)} items");
 
@@ -199,7 +187,19 @@ namespace Routed.Layer
 			}
 		}
 
-		public void UpdateUIs()
+		// todo: merge into one method
+		private void PullItem(Item item, Duct origin, Duct destination)
+		{
+			NetworkItem networkItem = new NetworkItem(item, origin, destination);
+			NetworkItems.Add(networkItem);
+
+			ItemCache[item.type] -= item.stack;
+			if (ItemCache[item.type] <= 0) ItemCache.Remove(item.type);
+
+			UpdateUIs();
+		}
+
+		private void UpdateUIs()
 		{
 			foreach (UIElement element in BaseLibrary.BaseLibrary.PanelGUI.Elements)
 			{

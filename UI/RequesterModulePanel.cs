@@ -215,35 +215,29 @@ namespace Routed.UI
 
 		public void UpdateGrid()
 		{
-			// todo: cache
-			Dictionary<int, Item> items = Container.Network.ProviderModules.SelectMany(module => module.GetHandler()?.Items).Where(item => !item.IsAir).GroupBy(item => item.type).Select(group =>
-			{
-				Item item = new Item();
-				item.SetDefaults(group.Key);
-				item.stack = group.Sum(i => i.stack);
-				return item;
-			}).ToDictionary(x => x.type, x => x);
-
 			// remove
 			for (int i = 0; i < gridSlots.Count; i++)
 			{
 				UIRequesterSlot slot = gridSlots.Items[i];
-				if (!items.ContainsKey(slot.Item.type)) gridSlots.Remove(slot);
+				if (!Container.Network.ItemCache.ContainsKey(slot.Item.type)) gridSlots.Remove(slot);
 			}
 
 			// update
-			List<Item> remaining = new List<Item>();
-			for (int i = 0; i < items.Count; i++)
+			var remaining = new Dictionary<int, int>();
+			foreach (var pair in Container.Network.ItemCache)
 			{
-				Item item = items.ElementAt(i).Value;
-				UIRequesterSlot slot = gridSlots.Items.FirstOrDefault(s => s.Item.netID == item.netID);
-				if (slot != null) slot.Item.stack = item.stack;
-				else remaining.Add(item);
+				UIRequesterSlot slot = gridSlots.Items.FirstOrDefault(s => s.Item.netID == pair.Key);
+				if (slot != null) slot.Item.stack = pair.Value;
+				else remaining.Add(pair.Key, pair.Value);
 			}
 
 			// add
-			foreach (Item item in remaining)
+			foreach (var pair in remaining)
 			{
+				Item item = new Item();
+				item.SetDefaults(pair.Key);
+				item.stack = pair.Value;
+
 				UIRequesterSlot slot = new UIRequesterSlot
 				{
 					Width = (SlotSize, 0),
