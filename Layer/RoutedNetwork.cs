@@ -83,7 +83,7 @@ namespace Routed.Layer
 		public bool PushItem(Item item, Duct origin)
 		{
 			// bug: will drop items on nearly full stacks
-			MarkerModule module = MarkerModules.OrderByDescending(markerModule => markerModule.Priority).FirstOrDefault(markerModule =>
+			MarkerModule module = MarkerModules.OrderByDescending(markerModule => markerModule.priority).FirstOrDefault(markerModule =>
 			{
 				ItemHandler other = markerModule.GetHandler();
 				if (other == null) return false;
