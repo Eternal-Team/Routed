@@ -1,15 +1,15 @@
 ﻿using BaseLibrary;
-using BaseLibrary.UI;
-using BaseLibrary.UI.Elements;
+using BaseLibrary.UI.New;
 using Microsoft.Xna.Framework;
 using Routed.Modules;
+using Routed.Modules.FilterModes;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.ModLoader;
 
 namespace Routed.UI
 {
-	public class MarkerModulePanel : BaseUIPanel<MarkerModule>
+	public class MarkerModulePanel : BaseLibrary.UI.BaseUIPanel<MarkerModule>
 	{
 		public override void OnInitialize()
 		{
@@ -17,17 +17,17 @@ namespace Routed.UI
 			Height = (172, 0);
 			this.Center();
 
-			UITextButton buttonClose = new UITextButton("X")
+			BaseLibrary.UI.Elements.UITextButton buttonClose = new BaseLibrary.UI.Elements.UITextButton("X")
 			{
 				Size = new Vector2(20),
 				Left = (-20, 1),
 				Padding = (0, 0, 0, 0),
 				RenderPanel = false
 			};
-			buttonClose.OnClick += (evt, element) => PanelUI.Instance.CloseUI(Container);
+			buttonClose.OnClick += (evt, element) => BaseLibrary.UI.PanelUI.Instance.CloseUI(Container);
 			Append(buttonClose);
 
-			UIText textLabel = new UIText("Marker Module")
+			BaseLibrary.UI.Elements.UIText textLabel = new BaseLibrary.UI.Elements.UIText("Marker Module")
 			{
 				Width = (0, 1),
 				Height = (20, 0),
@@ -39,7 +39,7 @@ namespace Routed.UI
 			{
 				case FilteredItemsMode mode:
 				{
-					UIGrid<UIConsumerSlot> grid = new UIGrid<UIConsumerSlot>(9)
+					BaseLibrary.UI.Elements.UIGrid<UIConsumerSlot> grid = new BaseLibrary.UI.Elements.UIGrid<UIConsumerSlot>(9)
 					{
 						Width = (0, 1),
 						Height = (-28, 1),
@@ -64,7 +64,7 @@ namespace Routed.UI
 				}
 				case ModBasedMode mode:
 				{
-					UIGrid<UIModItem> grid = new UIGrid<UIModItem>
+					BaseLibrary.UI.Elements.UIGrid<UIModItem> grid = new BaseLibrary.UI.Elements.UIGrid<UIModItem>
 					{
 						Width = (0, 1),
 						Height = (-28, 1),
@@ -97,7 +97,7 @@ namespace Routed.UI
 			}
 		}
 
-		private class UIModItem : BaseElement
+		private class UIModItem : BaseLibrary.UI.Elements.BaseElement
 		{
 			public Color TextColor
 			{
@@ -105,14 +105,14 @@ namespace Routed.UI
 			}
 
 			private Mod mod;
-			private UIText text;
+			private BaseLibrary.UI.Elements.UIText text;
 
 			public UIModItem(Mod mod)
 			{
 				this.mod = mod;
 				SetPadding(0);
 
-				text = new UIText(mod.DisplayName)
+				text = new BaseLibrary.UI.Elements.UIText(mod.DisplayName)
 				{
 					Width = (0, 1),
 					Height = (0, 1),

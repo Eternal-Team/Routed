@@ -1,14 +1,16 @@
 ﻿using BaseLibrary;
-using BaseLibrary.UI;
-using BaseLibrary.UI.Elements;
+using BaseLibrary.Input;
+using BaseLibrary.UI.New;
 using ContainerLibrary;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using Routed.Modules;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Terraria;
+using Terraria.GameContent.Achievements;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI;
@@ -16,6 +18,208 @@ using Terraria.UI.Chat;
 
 namespace Routed.UI
 {
+	public class UIContainerSlot : BaseElement
+	{
+		public ItemHandler Handler => FuncHandler();
+
+		public Item Item
+		{
+			get => Handler.GetItemInSlot(slot);
+			set => Handler.SetItemInSlot(slot, value);
+		}
+
+		private readonly Func<ItemHandler> FuncHandler;
+		public Texture2D backgroundTexture = Main.inventoryBackTexture;
+
+		public Item PreviewItem;
+
+		public bool ShortStackSize = false;
+
+		public int slot;
+
+		public UIContainerSlot(Func<ItemHandler> itemHandler, int slot = 0)
+		{
+			Width.Pixels = 40;
+			Height.Pixels = 40;
+
+			this.slot = slot;
+			FuncHandler = itemHandler;
+		}
+
+		protected override void MouseClick(MouseButtonEventArgs args)
+		{
+			if (Handler.IsItemValid(slot, Main.mouseItem) || Main.mouseItem.IsAir)
+			{
+				Item.newAndShiny = false;
+				Player player = Main.LocalPlayer;
+
+				if (ItemSlot.ShiftInUse)
+				{
+					ItemUtility.Loot(Handler, slot, Main.LocalPlayer);
+
+					base.MouseClick(args);
+
+					return;
+				}
+
+				if (Main.mouseItem.IsAir) Main.mouseItem = Handler.ExtractItem(slot, Item.maxStack);
+				else
+				{
+					if (Item.IsTheSameAs(Main.mouseItem)) Main.mouseItem = Handler.InsertItem(slot, Main.mouseItem);
+					else
+					{
+						if (Item.stack <= Item.maxStack)
+						{
+							Item temp = Item;
+							Utils.Swap(ref temp, ref Main.mouseItem);
+							Item = temp;
+						}
+					}
+				}
+
+				if (Item.stack > 0) AchievementsHelper.NotifyItemPickup(player, Item);
+
+				if (Main.mouseItem.type > 0 || Item.type > 0)
+				{
+					Recipe.FindRecipes();
+					Main.PlaySound(SoundID.Grab);
+				}
+			}
+
+			base.MouseClick(args);
+		}
+
+		public override int CompareTo(BaseElement other) => slot.CompareTo(((UIContainerSlot)other).slot);
+
+		private void DrawItem(SpriteBatch spriteBatch, Item item, float scale)
+		{
+			Texture2D itemTexture = Main.itemTexture[item.type];
+			Rectangle rect = Main.itemAnimations[item.type] != null ? Main.itemAnimations[item.type].GetFrame(itemTexture) : itemTexture.Frame();
+			Color newColor = Color.White;
+			float pulseScale = 1f;
+			ItemSlot.GetItemLight(ref newColor, ref pulseScale, item);
+			int height = rect.Height;
+			int width = rect.Width;
+			float drawScale = 1f;
+
+			float availableWidth = InnerDimensions.Width;
+			if (width > availableWidth || height > availableWidth)
+			{
+				if (width > height) drawScale = availableWidth / width;
+				else drawScale = availableWidth / height;
+			}
+
+			drawScale *= scale;
+			Vector2 position = Dimensions.Position() + Size * 0.5f;
+			Vector2 origin = BaseLibrary.UI.New.Extensions.Size(rect) * 0.5f;
+
+			if (ItemLoader.PreDrawInInventory(item, spriteBatch, position - origin * drawScale, rect, item.GetAlpha(newColor), item.GetColor(Color.White), origin, drawScale * pulseScale))
+			{
+				spriteBatch.Draw(itemTexture, position, rect, item.GetAlpha(newColor), 0f, origin, drawScale * pulseScale, SpriteEffects.None, 0f);
+				if (item.color != Color.Transparent) spriteBatch.Draw(itemTexture, position, rect, item.GetColor(Color.White), 0f, origin, drawScale * pulseScale, SpriteEffects.None, 0f);
+			}
+
+			ItemLoader.PostDrawInInventory(item, spriteBatch, position - origin * drawScale, rect, item.GetAlpha(newColor), item.GetColor(Color.White), origin, drawScale * pulseScale);
+			if (ItemID.Sets.TrapSigned[item.type]) spriteBatch.Draw(Main.wireTexture, position + new Vector2(40f, 40f) * scale, new Rectangle(4, 58, 8, 8), Color.White, 0f, new Vector2(4f), 1f, SpriteEffects.None, 0f);
+			if (item.stack > 1)
+			{
+				string text = !ShortStackSize || item.stack < 1000 ? item.stack.ToString() : item.stack.ToSI("N1");
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, Main.fontItemStack, text, InnerDimensions.Position() + new Vector2Int(8, (int)(InnerDimensions.Height - Main.fontMouseText.MeasureString(text).Y * scale)), Color.White, 0f, Vector2.Zero, new Vector2(0.85f), -1f, scale);
+			}
+
+			if (IsMouseHovering)
+			{
+				Main.LocalPlayer.showItemIcon = false;
+				Main.ItemIconCacheUpdate(0);
+				Main.HoverItem = item.Clone();
+				Main.hoverItemName = Main.HoverItem.Name;
+
+				if (ItemSlot.ShiftInUse) BaseLibrary.Hooking.SetCursor("Terraria/UI/Cursor_7");
+			}
+		}
+
+		protected override void Draw(SpriteBatch spriteBatch)
+		{
+			spriteBatch.DrawSlot(Dimensions, Color.White, !Item.IsAir && Item.favorited ? Main.inventoryBack10Texture : backgroundTexture);
+
+			float scale = Math.Min(InnerDimensions.Width / (float)backgroundTexture.Width, InnerDimensions.Height / (float)backgroundTexture.Height);
+
+			if (!Item.IsAir) DrawItem(spriteBatch, Item, scale);
+			else if (PreviewItem != null && !PreviewItem.IsAir) spriteBatch.DrawWithEffect(BaseLibrary.BaseLibrary.DesaturateShader, () => DrawItem(spriteBatch, PreviewItem, scale));
+		}
+
+		//public override void RightClickContinuous(UIMouseEvent evt)
+		//{
+		//	if (Handler.IsItemValid(slot, Main.mouseItem) || Main.mouseItem.IsAir)
+		//	{
+		//		Player player = Main.LocalPlayer;
+		//		Item.newAndShiny = false;
+
+		//		if (player.itemAnimation > 0) return;
+
+		//		if (Main.stackSplit <= 1 && Main.mouseRight)
+		//		{
+		//			if ((Main.mouseItem.IsTheSameAs(Item) || Main.mouseItem.type == 0) && (Main.mouseItem.stack < Main.mouseItem.maxStack || Main.mouseItem.type == 0))
+		//			{
+		//				if (Main.mouseItem.type == 0)
+		//				{
+		//					Main.mouseItem = Item.Clone();
+		//					Main.mouseItem.stack = 0;
+		//					if (Item.favorited && Item.maxStack == 1) Main.mouseItem.favorited = true;
+		//					Main.mouseItem.favorited = false;
+		//				}
+
+		//				Main.mouseItem.stack++;
+		//				Handler.Shrink(slot, 1);
+
+		//				Recipe.FindRecipes();
+
+		//				Main.soundInstanceMenuTick.Stop();
+		//				Main.soundInstanceMenuTick = Main.soundMenuTick.CreateInstance();
+		//				Main.PlaySound(12);
+
+		//				Main.stackSplit = Main.stackSplit == 0 ? 15 : Main.stackDelay;
+		//			}
+		//		}
+		//	}
+		//}
+
+		protected override void MouseScroll(MouseScrollEventArgs args)
+		{
+			if (!Main.keyState.IsKeyDown(Keys.LeftAlt)) return;
+
+			args.Handled = true;
+
+			if (args.OffsetY > 0)
+			{
+				if (Main.mouseItem.type == Item.type && Main.mouseItem.stack < Main.mouseItem.maxStack)
+				{
+					Main.mouseItem.stack++;
+					Handler.Shrink(slot, 1);
+				}
+				else if (Main.mouseItem.IsAir)
+				{
+					Main.mouseItem = Item.Clone();
+					Main.mouseItem.stack = 1;
+					Handler.Shrink(slot, 1);
+				}
+			}
+			else if (args.OffsetY < 0)
+			{
+				if (Item.type == Main.mouseItem.type && Handler.Grow(slot, 1))
+				{
+					if (--Main.mouseItem.stack <= 0) Main.mouseItem.TurnToAir();
+				}
+				else if (Item.IsAir)
+				{
+					Item = Main.mouseItem.Clone();
+					Item.stack = 1;
+					if (--Main.mouseItem.stack <= 0) Main.mouseItem.TurnToAir();
+				}
+			}
+		}
+	}
+
 	// todo: sorting modes
 	public class RequesterModulePanel : BaseUIPanel<RequesterModule>, IItemHandlerUI
 	{
@@ -26,125 +230,135 @@ namespace Routed.UI
 		public ItemHandler Handler => Container.ReturnHandler;
 		public string GetTexture(Item item) => "Routed/Textures/Modules/RequesterModule";
 		private UIGrid<UIRequesterSlot> gridSlots;
+
 		private BaseLibrary.Ref<string> search = new BaseLibrary.Ref<string>("");
+
 		private UIText textQueue;
 
-		public override void OnActivate()
+		protected override void Activate()
 		{
 			Hooking.Network = Container.Network;
 			Recipe.FindRecipes();
 		}
 
-		public override void OnDeactivate()
+		protected override void Deactivate()
 		{
 			Hooking.Network = null;
 			Recipe.FindRecipes();
 		}
 
-		public override void OnInitialize()
+		public RequesterModulePanel(RequesterModule module) : base(module)
 		{
-			Width = (60 + (SlotSize + Padding) * Columns - Padding, 0);
-			Height = (144 + (SlotSize + Padding) * (Rows + 2) - Padding * 2, 0);
-			this.Center();
+			Width.Pixels = 60 + (SlotSize + Padding) * Columns - Padding;
+			Height.Pixels = 144 + (SlotSize + Padding) * (Rows + 2) - Padding * 2;
+			X.Percent = Y.Percent = 50;
 
 			UITextButton buttonClose = new UITextButton("X")
 			{
-				Size = new Vector2(20),
-				Left = (-20, 1),
-				Padding = (0, 0, 0, 0),
-				RenderPanel = false
+				Width = { Pixels = 20 },
+				Height = { Pixels = 20 },
+				X = { Percent = 100 },
+				RenderPanel = false,
+				Padding = new Padding(0)
 			};
-			buttonClose.OnClick += (evt, element) => PanelUI.Instance.CloseUI(Container);
-			Append(buttonClose);
+			buttonClose.OnClick += args => PanelUI.Instance.CloseUI(Container);
+			Add(buttonClose);
 
 			textQueue = new UIText("Queue")
 			{
-				Width = (0, 0.5f),
+				Width = { Percent = 50 },
 				HorizontalAlignment = HorizontalAlignment.Left
 			};
-			Append(textQueue);
+			Add(textQueue);
 
 			UIText textLabel = new UIText("Requester Module")
 			{
-				Width = (0, 1),
+				Width = { Percent = 100 },
 				HorizontalAlignment = HorizontalAlignment.Center
 			};
-			Append(textLabel);
+			Add(textLabel);
 
 			UIPanel panel = new UIPanel
 			{
-				Top = (28, 0),
-				Width = (0, 1),
-				Height = ((SlotSize + Padding) * Rows - Padding, 0),
+				Y = { Pixels = 28 },
+				Width = { Percent = 100 },
+				Height = { Pixels = (SlotSize + Padding) * Rows - Padding },
 				BorderColor = Color.Transparent,
 				BackgroundColor = Utility.ColorPanel_Selected * 0.75f
 			};
-			Append(panel);
+			Add(panel);
 
 			gridSlots = new UIGrid<UIRequesterSlot>(Columns)
 			{
-				Width = (-26, 1),
-				Height = (0, 1),
+				Width = { Percent = 100, Pixels = -26 },
+				Height = { Percent = 100 },
 				ListPadding = Padding
 			};
-			// todo: regex mode
-			gridSlots.SearchSelector += item => string.IsNullOrWhiteSpace(search.Value) || item.Item.HoverName.ToLower().Contains(search.Value.ToLower());
-			panel.Append(gridSlots);
+			gridSlots.SearchSelector += item =>
+			{
+				if (string.IsNullOrWhiteSpace(search.Value)) return true;
 
-			gridSlots.scrollbar.HAlign = 1;
-			gridSlots.scrollbar.Top = (0, 0);
-			gridSlots.scrollbar.Height = (0, 1);
-			panel.Append(gridSlots.scrollbar);
+				string itemName = item.Item.HoverName.ToLower();
+				string searchName = search.Value.ToLower();
+
+				return itemName.Contains(searchName);
+			};
+			panel.Add(gridSlots);
+
+			gridSlots.scrollbar.X.Percent = 100;
+			gridSlots.scrollbar.Y.Pixels = 0;
+			gridSlots.scrollbar.Height.Percent = 100;
+			panel.Add(gridSlots.scrollbar);
 
 			UITextInput inputSearch = new UITextInput(ref search)
 			{
-				Top = (36 + (SlotSize + Padding) * Rows - Padding, 0),
-				Width = (0, 1),
-				Height = (40, 0),
+				Y = { Pixels = 36 + (SlotSize + Padding) * Rows - Padding },
+				Width = { Percent = 100 },
+				Height = { Pixels = 40 },
 				RenderPanel = true,
 				VerticalAlignment = VerticalAlignment.Center,
 				HintText = "Search"
 			};
 			inputSearch.OnTextChange += () => gridSlots.Search();
-			Append(inputSearch);
+			Add(inputSearch);
 
 			// requested items
 			{
 				UIText textRequestedItem = new UIText("Requested Items")
 				{
-					Width = ((SlotSize + Padding) * 10 - Padding, 0),
-					MarginLeft = 8,
-					Top = (84 + (SlotSize + Padding) * Rows - Padding, 0),
+					Width = { Pixels = (SlotSize + Padding) * 10 - Padding },
+					Margin = new Margin(8, 0, 0, 0),
+					Y = { Pixels = 84 + (SlotSize + Padding) * Rows - Padding },
 					HorizontalAlignment = HorizontalAlignment.Center
 				};
-				Append(textRequestedItem);
+				Add(textRequestedItem);
 
 				panel = new UIPanel
 				{
-					Top = (112 + (SlotSize + Padding) * Rows - Padding, 0),
-					Width = (0, 1),
-					Height = (16 + (SlotSize + Padding) * 2 - Padding, 0),
+					Y = { Pixels = 112 + (SlotSize + Padding) * Rows - Padding },
+					Width = { Percent = 100 },
+					Height = { Pixels = 16 + (SlotSize + Padding) * 2 - Padding },
 					BorderColor = Color.Transparent,
 					BackgroundColor = Utility.ColorPanel_Selected * 0.75f
 				};
-				Append(panel);
+				Add(panel);
 
 				UIGrid<UIContainerSlot> gridOutout = new UIGrid<UIContainerSlot>(10)
 				{
-					Width = ((SlotSize + Padding) * 10, 0),
-					Height = (0, 1),
+					Width = { Pixels = (SlotSize + Padding) * 10 },
+					Height = { Percent = 100 },
 					ListPadding = Padding
 				};
-				panel.Append(gridOutout);
+				panel.Add(gridOutout);
 
 				for (int i = 0; i < Container.Handler.Slots; i++)
 				{
 					UIContainerSlot slot = new UIContainerSlot(() => Container.Handler, i)
 					{
-						Width = (SlotSize, 0),
-						Height = (SlotSize, 0)
+						Width = { Pixels = SlotSize },
+						Height = { Pixels = SlotSize },
+						Padding = new Padding(2)
 					};
-					slot.SetPadding(2);
 					gridOutout.Add(slot);
 				}
 			}
@@ -153,44 +367,44 @@ namespace Routed.UI
 			{
 				UIText textReturnItems = new UIText("Return")
 				{
-					Width = ((SlotSize + Padding) * 3 - Padding, 0),
-					MarginRight = 8,
-					HAlign = 1,
-					Top = (84 + (SlotSize + Padding) * Rows - Padding, 0),
+					Width = { Pixels = (SlotSize + Padding) * 3 - Padding },
+					Margin = new Margin(0, 0, 8, 0),
+					X = { Percent = 100 },
+					Y = { Pixels = 84 + (SlotSize + Padding) * Rows - Padding },
 					HorizontalAlignment = HorizontalAlignment.Center
 				};
-				Append(textReturnItems);
+				Add(textReturnItems);
 
 				UIGrid<UIContainerSlot> gridInput = new UIGrid<UIContainerSlot>(3)
 				{
-					Width = ((SlotSize + Padding) * 3 - Padding, 0),
-					Height = (0, 1),
-					HAlign = 1,
+					Width = { Pixels = (SlotSize + Padding) * 3 - Padding },
+					Height = { Percent = 100 },
+					X = { Percent = 100 },
 					ListPadding = Padding
 				};
-				panel.Append(gridInput);
+				panel.Add(gridInput);
 
 				for (int i = 0; i < Container.ReturnHandler.Slots; i++)
 				{
 					UIContainerSlot slot = new UIContainerSlot(() => Container.ReturnHandler, i)
 					{
-						Width = (SlotSize, 0),
-						Height = (SlotSize, 0)
+						Width = { Pixels = SlotSize },
+						Height = { Pixels = SlotSize },
+						Padding = new Padding(2)
 					};
-					slot.SetPadding(2);
 					gridInput.Add(slot);
 				}
 			}
 
 			UIButton buttonTransfer = new UIButton(ModContent.GetTexture("BaseLibrary/Textures/UI/QuickStack"))
 			{
-				VAlign = 0.5f,
-				Left = (6 + (SlotSize + Padding) * 10 - Padding, 0),
-				Width = (20, 0),
-				Height = (20, 0),
-				HoverText = "Transfer items"
+				Y = { Percent = 50 },
+				X = { Pixels = 6 + (SlotSize + Padding) * 10 - Padding },
+				Width = { Pixels = 20 },
+				Height = { Pixels = 20 }
+				//HoverText = "Transfer items"
 			};
-			buttonTransfer.OnClick += (evt, element) =>
+			buttonTransfer.OnClick += args =>
 			{
 				for (int i = 0; i < Container.Handler.Slots; i++)
 				{
@@ -201,12 +415,12 @@ namespace Routed.UI
 
 				Recipe.FindRecipes();
 			};
-			panel.Append(buttonTransfer);
+			panel.Add(buttonTransfer);
 
 			UpdateGrid();
 		}
 
-		public override void Update(GameTime gameTime)
+		protected override void Update(GameTime gameTime)
 		{
 			base.Update(gameTime);
 
@@ -218,7 +432,7 @@ namespace Routed.UI
 			// remove
 			for (int i = 0; i < gridSlots.Count; i++)
 			{
-				UIRequesterSlot slot = gridSlots.Items[i];
+				UIRequesterSlot slot = (UIRequesterSlot)gridSlots.Children[i];
 				if (!Container.Network.ItemCache.ContainsKey(slot.Item.type)) gridSlots.Remove(slot);
 			}
 
@@ -226,7 +440,7 @@ namespace Routed.UI
 			var remaining = new Dictionary<int, int>();
 			foreach (var pair in Container.Network.ItemCache)
 			{
-				UIRequesterSlot slot = gridSlots.Items.FirstOrDefault(s => s.Item.netID == pair.Key);
+				UIRequesterSlot slot = gridSlots.Children.Cast<UIRequesterSlot>().FirstOrDefault(s => s.Item.netID == pair.Key);
 				if (slot != null) slot.Item.stack = pair.Value;
 				else remaining.Add(pair.Key, pair.Value);
 			}
@@ -240,12 +454,12 @@ namespace Routed.UI
 
 				UIRequesterSlot slot = new UIRequesterSlot
 				{
-					Width = (SlotSize, 0),
-					Height = (SlotSize, 0),
-					Item = item
+					Width = { Pixels = SlotSize },
+					Height = { Pixels = SlotSize },
+					Item = item,
+					Padding = new Padding(2)
 				};
-				slot.SetPadding(2);
-				slot.OnClick += (evt, element) => Container.RequestItem(item.type, 10);
+				slot.OnClick += args => Container.RequestItem(item.type, 10);
 				gridSlots.Add(slot);
 			}
 		}
@@ -256,11 +470,20 @@ namespace Routed.UI
 
 			public UIRequesterSlot()
 			{
-				Width = (40, 0);
-				Height = (40, 0);
+				Width.Pixels = 40;
+				Height.Pixels = 40;
 			}
 
-			public override int CompareTo(object obj) => Item.type.CompareTo((obj as UIRequesterSlot)?.Item.type);
+			public override int CompareTo(BaseElement other) => Item.type.CompareTo((other as UIRequesterSlot)?.Item.type);
+
+			protected override void Draw(SpriteBatch spriteBatch)
+			{
+				spriteBatch.DrawSlot(Dimensions, Color.White, Main.inventoryBackTexture);
+
+				float scale = Math.Min(InnerDimensions.Width / (float)Main.inventoryBackTexture.Width, InnerDimensions.Height / (float)Main.inventoryBackTexture.Height);
+
+				if (Item != null && !Item.IsAir) DrawItem(spriteBatch, Item, scale);
+			}
 
 			private void DrawItem(SpriteBatch spriteBatch, Item item, float scale)
 			{
@@ -281,21 +504,21 @@ namespace Routed.UI
 				}
 
 				drawScale *= scale;
-				Vector2 position = Dimensions.Position() + Dimensions.Size() * 0.5f;
-				Vector2 origin = rect.Size() * 0.5f;
+				Vector2 position = Dimensions.Position() + Size * 0.5f;
+				Vector2 origin = Utils.Size(rect) * 0.5f;
 
-				if (ItemLoader.PreDrawInInventory(item, spriteBatch, position - rect.Size() * 0.5f * drawScale, rect, item.GetAlpha(newColor), item.GetColor(Color.White), origin, drawScale * pulseScale))
+				if (ItemLoader.PreDrawInInventory(item, spriteBatch, position - Utils.Size(rect) * 0.5f * drawScale, rect, item.GetAlpha(newColor), item.GetColor(Color.White), origin, drawScale * pulseScale))
 				{
 					spriteBatch.Draw(itemTexture, position, rect, item.GetAlpha(newColor), 0f, origin, drawScale * pulseScale, SpriteEffects.None, 0f);
 					if (item.color != Color.Transparent) spriteBatch.Draw(itemTexture, position, rect, item.GetColor(Color.White), 0f, origin, drawScale * pulseScale, SpriteEffects.None, 0f);
 				}
 
-				ItemLoader.PostDrawInInventory(item, spriteBatch, position - rect.Size() * 0.5f * drawScale, rect, item.GetAlpha(newColor), item.GetColor(Color.White), origin, drawScale * pulseScale);
+				ItemLoader.PostDrawInInventory(item, spriteBatch, position - Utils.Size(rect) * 0.5f * drawScale, rect, item.GetAlpha(newColor), item.GetColor(Color.White), origin, drawScale * pulseScale);
 				if (ItemID.Sets.TrapSigned[item.type]) spriteBatch.Draw(Main.wireTexture, position + new Vector2(40f, 40f) * scale, new Rectangle(4, 58, 8, 8), Color.White, 0f, new Vector2(4f), 1f, SpriteEffects.None, 0f);
 				if (item.stack > 1)
 				{
 					string text = item.stack < 1000 ? item.stack.ToString() : item.stack.ToSI("N1");
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, Main.fontItemStack, text, InnerDimensions.Position() + new Vector2(8, InnerDimensions.Height - Main.fontMouseText.MeasureString(text).Y * scale), Color.White, 0f, Vector2.Zero, new Vector2(0.85f), -1f, scale);
+					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, Main.fontItemStack, text, InnerDimensions.Position() + new Vector2Int(8, (int)(InnerDimensions.Height - Main.fontMouseText.MeasureString(text).Y * scale)), Color.White, 0f, Vector2.Zero, new Vector2(0.85f), -1f, scale);
 				}
 
 				if (IsMouseHovering)
@@ -307,15 +530,6 @@ namespace Routed.UI
 
 					if (ItemSlot.ShiftInUse) BaseLibrary.Hooking.SetCursor("Routed/Textures/Modules/RequesterModule");
 				}
-			}
-
-			protected override void DrawSelf(SpriteBatch spriteBatch)
-			{
-				spriteBatch.DrawSlot(Dimensions, Color.White, Main.inventoryBackTexture);
-
-				float scale = Math.Min(InnerDimensions.Width / Main.inventoryBackTexture.Width, InnerDimensions.Height / Main.inventoryBackTexture.Height);
-
-				if (Item != null && !Item.IsAir) DrawItem(spriteBatch, Item, scale);
 			}
 		}
 	}

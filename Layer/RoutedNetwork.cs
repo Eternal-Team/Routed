@@ -1,4 +1,5 @@
 ﻿using BaseLibrary;
+using BaseLibrary.UI.New;
 using ContainerLibrary;
 using LayerLibrary;
 using Microsoft.Xna.Framework;
@@ -10,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Terraria;
 using Terraria.DataStructures;
+using Terraria.ID;
 using Terraria.ModLoader.IO;
 using Terraria.UI;
 
@@ -57,10 +59,8 @@ namespace Routed.Layer
 			Networks.Add(this);
 		}
 
-		public void PullItem(int type, int count, Duct destination)
+		public bool PullItem(int type, int count, Duct destination)
 		{
-			// note: return false if count>0 at the end of the loop, otherwise true?
-
 			foreach (ProviderModule module in ProviderModules)
 			{
 				ItemHandler handler = module.GetHandler();
@@ -72,17 +72,27 @@ namespace Routed.Layer
 					if (item.IsAir || item.type != type) continue;
 
 					int extractedAmount = Math.Min(count, item.stack);
-					Item extracted = handler.ExtractItem(i, extractedAmount);
-					PullItem(extracted, module.Parent, destination);
+
+					NetworkItem networkItem = new NetworkItem(handler.ExtractItem(i, extractedAmount), module.Parent, destination);
+					NetworkItems.Add(networkItem);
+					
+					ItemCache[item.netID] -= extractedAmount;
+					if (ItemCache[item.netID] <= 0) ItemCache.Remove(item.type);
+
+					UpdateUIs();
+
 					count -= extractedAmount;
-					if (count <= 0) return;
+					if (count <= 0) return true;
 				}
 			}
+
+			return false;
 		}
 
 		public bool PushItem(Item item, Duct origin)
 		{
 			// bug: will drop items on nearly full stacks
+			// select all valid marker module, loop through them, break when item.stack <= 0
 			MarkerModule module = MarkerModules.OrderByDescending(markerModule => markerModule.priority).FirstOrDefault(markerModule =>
 			{
 				ItemHandler other = markerModule.GetHandler();
@@ -160,7 +170,7 @@ namespace Routed.Layer
 				{
 					if (item.IsAir) continue;
 
-					ItemCache[item.type] += item.stack;
+					ItemCache[item.netID] += item.stack;
 				}
 			}
 		}
@@ -177,7 +187,7 @@ namespace Routed.Layer
 
 		internal void Update()
 		{
-			Main.NewText($"Currently caching {ItemCache.Count} types and {ItemCache.Sum(pair => pair.Value)} items");
+			//Main.NewText($"Currently caching {ItemCache.Count} types and {ItemCache.Sum(pair => pair.Value)} items");
 
 			for (int i = 0; i < NetworkItems.Count; i++)
 			{
@@ -187,21 +197,9 @@ namespace Routed.Layer
 			}
 		}
 
-		// todo: merge into one method
-		private void PullItem(Item item, Duct origin, Duct destination)
+		internal void UpdateUIs()
 		{
-			NetworkItem networkItem = new NetworkItem(item, origin, destination);
-			NetworkItems.Add(networkItem);
-
-			ItemCache[item.type] -= item.stack;
-			if (ItemCache[item.type] <= 0) ItemCache.Remove(item.type);
-
-			UpdateUIs();
-		}
-
-		private void UpdateUIs()
-		{
-			foreach (UIElement element in BaseLibrary.BaseLibrary.PanelGUI.Elements)
+			foreach (BaseElement element in PanelUI.Instance.Children)
 			{
 				if (element is RequesterModulePanel panel) panel.UpdateGrid();
 			}

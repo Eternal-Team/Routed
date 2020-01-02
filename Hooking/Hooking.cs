@@ -1,4 +1,4 @@
-﻿using BaseLibrary.UI;
+﻿using BaseLibrary.UI.New;
 using ContainerLibrary;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -37,7 +37,7 @@ namespace Routed
 		private static void RequestItems(ILCursor cursor)
 		{
 			ILLabel label = cursor.DefineLabel();
-			
+
 			if (cursor.TryGotoNext(MoveType.AfterLabel, i => i.MatchCallvirt<Player>("IsStackingItems"), i => i.MatchBrtrue(out _), i => i.MatchLdsfld<Main>("mouseLeftRelease"), i => i.MatchBrfalse(out _)))
 			{
 				cursor.Index += 6;
@@ -47,8 +47,7 @@ namespace Routed
 				{
 					if (indexes.Contains(Main.availableRecipe[index]))
 					{
-						if (Network == null)
-							return false;
+						if (Network == null) return false;
 
 						Recipe recipe = Main.recipe[Main.availableRecipe[index]];
 
@@ -56,7 +55,7 @@ namespace Routed
 						{
 							if (!item.IsAir)
 							{
-								RequesterModulePanel ui = PanelUI.Instance.Elements.First(panel => panel is RequesterModulePanel) as RequesterModulePanel;
+								RequesterModulePanel ui = PanelUI.Instance.Children.First(panel => panel is RequesterModulePanel) as RequesterModulePanel;
 								ui?.Container.RequestItem(item.type, item.stack);
 							}
 						}
@@ -88,8 +87,7 @@ namespace Routed
 				cursor.Emit(OpCodes.Ldloc, 138);
 				cursor.EmitDelegate<Action<int, int, int>>((index, x, y) =>
 				{
-					if (indexes.Contains(Main.availableRecipe[index]))
-						Main.spriteBatch.Draw(textureTick, new Vector2(x + 6, y + 6), Color.Red);
+					if (indexes.Contains(Main.availableRecipe[index])) Main.spriteBatch.Draw(textureTick, new Vector2(x + 6, y + 6), Color.Red);
 				});
 			}
 
@@ -102,8 +100,7 @@ namespace Routed
 				cursor.Emit(OpCodes.Ldloc, 169);
 				cursor.EmitDelegate<Action<int, int, int>>((index, x, y) =>
 				{
-					if (indexes.Contains(Main.availableRecipe[index]))
-						Main.spriteBatch.Draw(textureTick, new Vector2(x + 6, y + 6), Color.Red);
+					if (indexes.Contains(Main.availableRecipe[index])) Main.spriteBatch.Draw(textureTick, new Vector2(x + 6, y + 6), Color.Red);
 				});
 			}
 		}
@@ -113,7 +110,7 @@ namespace Routed
 			ILCursor cursor = new ILCursor(il);
 
 			RequestItems(cursor);
-			
+
 			DrawTicks(cursor);
 		}
 
@@ -129,7 +126,7 @@ namespace Routed
 
 				cursor.EmitDelegate<Func<Recipe, Item, int, int>>((self, ingredient, amount) =>
 				{
-					foreach (UIElement element in BaseLibrary.BaseLibrary.PanelGUI.Elements)
+					foreach (BaseElement element in PanelUI.Instance.Children)
 					{
 						if (element is RequesterModulePanel panel)
 						{
@@ -167,7 +164,7 @@ namespace Routed
 
 				cursor.EmitDelegate<Func<Dictionary<int, int>, Dictionary<int, int>>>(availableItems =>
 				{
-					foreach (UIElement element in BaseLibrary.BaseLibrary.PanelGUI.Elements)
+					foreach (BaseElement element in PanelUI.Instance.Children)
 					{
 						if (element is RequesterModulePanel panel)
 						{
@@ -188,13 +185,10 @@ namespace Routed
 
 					if (Network == null) return availableItems;
 
-					// todo: cache
-					foreach (Item item in Network.ProviderModules.SelectMany(module => module.GetHandler()?.Items))
+					foreach (var pair in Network.ItemCache)
 					{
-						if (item.IsAir) continue;
-
-						if (availableItems.ContainsKey(item.netID)) availableItems[item.netID] += item.stack;
-						else availableItems[item.netID] = item.stack;
+						if (availableItems.ContainsKey(pair.Key)) availableItems[pair.Key] += pair.Value;
+						else availableItems[pair.Key] = pair.Value;
 					}
 
 					return availableItems;

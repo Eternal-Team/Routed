@@ -1,5 +1,5 @@
 ﻿using BaseLibrary;
-using BaseLibrary.UI;
+using BaseLibrary.UI.New;
 using ContainerLibrary;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -12,7 +12,6 @@ using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
-using Terraria.UI;
 
 namespace Routed.Modules
 {
@@ -62,9 +61,9 @@ namespace Routed.Modules
 				if (UI != null) PanelUI.Instance.CloseUI(this);
 				else
 				{
-					for (int i = 0; i < PanelUI.Instance.Elements.Count; i++)
+					for (int i = 0; i < PanelUI.Instance.Children.Count; i++)
 					{
-						UIElement element = PanelUI.Instance.Elements[i];
+						BaseElement element = PanelUI.Instance.Children[i];
 						if (element is RequesterModulePanel panel) PanelUI.Instance.CloseUI(panel.Container);
 					}
 

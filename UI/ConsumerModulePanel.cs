@@ -1,6 +1,5 @@
 ﻿using BaseLibrary;
-using BaseLibrary.UI;
-using BaseLibrary.UI.Elements;
+using BaseLibrary.UI.New;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Routed.Modules;
@@ -13,14 +12,14 @@ using Terraria.UI.Chat;
 
 namespace Routed.UI
 {
-	public class ConsumerModulePanel : BaseUIPanel<ConsumerModule>
+	public class ConsumerModulePanel : BaseLibrary.UI.BaseUIPanel<ConsumerModule>
 	{
 		public override void OnInitialize()
 		{
 			Width = Height = (0, 0.25f);
 			this.Center();
 
-			UIText textLabel = new UIText("Consumer Module")
+			BaseLibrary.UI.Elements.UIText textLabel = new BaseLibrary.UI.Elements.UIText("Consumer Module")
 			{
 				Width = (0, 1),
 				Height = (20, 0),
@@ -29,17 +28,17 @@ namespace Routed.UI
 			};
 			Append(textLabel);
 
-			UITextButton buttonClose = new UITextButton("X")
+			BaseLibrary.UI.Elements.UITextButton buttonClose = new BaseLibrary.UI.Elements.UITextButton("X")
 			{
 				Size = new Vector2(20),
 				Left = (-20, 1),
 				Padding = (0, 0, 0, 0),
 				RenderPanel = false
 			};
-			buttonClose.OnClick += (evt, element) => PanelUI.Instance.CloseUI(Container);
+			buttonClose.OnClick += (evt, element) => BaseLibrary.UI.PanelUI.Instance.CloseUI(Container);
 			Append(buttonClose);
 
-			UIGrid<UIConsumerSlot> gridSlots = new UIGrid<UIConsumerSlot>(3)
+			BaseLibrary.UI.Elements.UIGrid<UIConsumerSlot> gridSlots = new BaseLibrary.UI.Elements.UIGrid<UIConsumerSlot>(3)
 			{
 				Top = (28, 0),
 				Width = (136, 0),
@@ -56,13 +55,22 @@ namespace Routed.UI
 		}
 	}
 
-	public class UIConsumerSlot : BaseElement
+	public class UIConsumerSlot : BaseLibrary.UI.Elements.BaseElement
 	{
 		public Item PreviewItem;
 
 		public UIConsumerSlot()
 		{
 			Width = Height = (40, 0);
+		}
+
+		protected override void DrawSelf(SpriteBatch spriteBatch)
+		{
+			spriteBatch.DrawSlot(Dimensions, Color.White, Main.inventoryBackTexture);
+
+			float scale = Math.Min(InnerDimensions.Width / Main.inventoryBackTexture.Width, InnerDimensions.Height / Main.inventoryBackTexture.Height);
+
+			if (PreviewItem != null && !PreviewItem.IsAir) DrawItem(spriteBatch, PreviewItem, scale);
 		}
 
 		private void DrawItem(SpriteBatch spriteBatch, Item item, float scale)
@@ -85,15 +93,15 @@ namespace Routed.UI
 
 			drawScale *= scale;
 			Vector2 position = Dimensions.Position() + Dimensions.Size() * 0.5f;
-			Vector2 origin = rect.Size() * 0.5f;
+			Vector2 origin = Utils.Size(rect) * 0.5f;
 
-			if (ItemLoader.PreDrawInInventory(item, spriteBatch, position - rect.Size() * 0.5f * drawScale, rect, item.GetAlpha(newColor), item.GetColor(Color.White), origin, drawScale * pulseScale))
+			if (ItemLoader.PreDrawInInventory(item, spriteBatch, position - Utils.Size(rect) * 0.5f * drawScale, rect, item.GetAlpha(newColor), item.GetColor(Color.White), origin, drawScale * pulseScale))
 			{
 				spriteBatch.Draw(itemTexture, position, rect, item.GetAlpha(newColor), 0f, origin, drawScale * pulseScale, SpriteEffects.None, 0f);
 				if (item.color != Color.Transparent) spriteBatch.Draw(itemTexture, position, rect, item.GetColor(Color.White), 0f, origin, drawScale * pulseScale, SpriteEffects.None, 0f);
 			}
 
-			ItemLoader.PostDrawInInventory(item, spriteBatch, position - rect.Size() * 0.5f * drawScale, rect, item.GetAlpha(newColor), item.GetColor(Color.White), origin, drawScale * pulseScale);
+			ItemLoader.PostDrawInInventory(item, spriteBatch, position - Utils.Size(rect) * 0.5f * drawScale, rect, item.GetAlpha(newColor), item.GetColor(Color.White), origin, drawScale * pulseScale);
 			if (ItemID.Sets.TrapSigned[item.type]) spriteBatch.Draw(Main.wireTexture, position + new Vector2(40f, 40f) * scale, new Rectangle(4, 58, 8, 8), Color.White, 0f, new Vector2(4f), 1f, SpriteEffects.None, 0f);
 			if (item.stack > 1)
 			{
@@ -110,15 +118,6 @@ namespace Routed.UI
 
 				//if (ItemSlot.ShiftInUse) Hooking.SetCursor("Terraria/UI/Cursor_7");
 			}
-		}
-
-		protected override void DrawSelf(SpriteBatch spriteBatch)
-		{
-			spriteBatch.DrawSlot(Dimensions, Color.White, Main.inventoryBackTexture);
-
-			float scale = Math.Min(InnerDimensions.Width / Main.inventoryBackTexture.Width, InnerDimensions.Height / Main.inventoryBackTexture.Height);
-
-			if (PreviewItem != null && !PreviewItem.IsAir) DrawItem(spriteBatch, PreviewItem, scale);
 		}
 	}
 }

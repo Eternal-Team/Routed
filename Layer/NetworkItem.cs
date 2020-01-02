@@ -63,11 +63,12 @@ namespace Routed.Layer
 						ItemHandler handler = module.GetHandler();
 
 						int count = item.stack;
+						int id = item.netID;
 
 						handler?.InsertItem(ref item);
 
 						// bug: only provider modules should add to total item count, probably need to map ItemHandler's to provider modules
-						if (module is MarkerModule) duct.Network.ItemCache[item.type] += count - item.stack;
+						if (module is MarkerModule) duct.Network.ItemCache[id] += count - item.stack;
 
 						duct.Network.UpdateUIs();
 					}

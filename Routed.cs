@@ -1,7 +1,8 @@
 using BaseLibrary;
 using BaseLibrary.Input;
+using BaseLibrary.Input.Mouse;
 using Routed.Layer;
-using Routed.Modules;
+using Routed.Modules.FilterModes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,11 +55,22 @@ namespace Routed
 			Duct.Initialize();
 			Hooking.Initialize();
 
-			if (!Main.dedServ) MouseEvents.ButtonPressed += args => args.Button == MouseButton.Right && RoutedLayer.Interact();
-
 			EmitDynamicItems();
 		}
-
+		
 		public override void Unload() => this.UnloadNullableTypes();
+
+		public override void PostSetupContent()
+		{
+			if (!Main.dedServ) Input.Layers.PushLayer(new RLayer());
+		}
+	}
+
+	internal class RLayer : BaseLibrary.Layer
+	{
+		public override void OnMouseDown(MouseButtonEventArgs args)
+		{
+			if (args.Button == MouseButton.Right && Routed.RoutedLayer.Interact()) args.Handled = true;
+		}
 	}
 }

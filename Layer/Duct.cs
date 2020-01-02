@@ -91,12 +91,18 @@ namespace Routed.Layer
 
 		public override void Load(TagCompound tag)
 		{
-			if (tag.ContainsKey("Module"))
+			try
 			{
-				TagCompound module = tag.GetCompound("Module");
-				Module = (BaseModule)Activator.CreateInstance(Type.GetType(module.GetString("Type")));
-				Module.Parent = this;
-				Module.Load(module.GetCompound("Data"));
+				if (tag.ContainsKey("Module"))
+				{
+					TagCompound module = tag.GetCompound("Module");
+					Module = (BaseModule)Activator.CreateInstance(Type.GetType(module.GetString("Type")));
+					Module.Parent = this;
+					Module.Load(module.GetCompound("Data"));
+				}
+			}
+			catch 
+			{
 			}
 		}
 

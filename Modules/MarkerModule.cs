@@ -121,6 +121,7 @@ namespace Routed.Modules
 				Mode.Module = this;
 				Mode.Load(mode.GetCompound("Data"));
 			}
+			else Mode = new AnyItemsMode();
 		}
 	}
 }
