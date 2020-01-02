@@ -60,41 +60,8 @@ namespace Routed.Modules
 				Type t = Routed.markerModules[module.Mode];
 				Mode = (FilterMode)Activator.CreateInstance(t);
 				Mode.Module = this;
-
-				switch (Mode)
-				{
-					case AnyItemsMode _:
-						priority = -1000;
-						break;
-					case MaterialsMode _:
-						priority = -900;
-						break;
-					case ConsumablesMode _:
-						priority = -800;
-						break;
-					case BuildingMode _:
-						priority = -700;
-						break;
-					case ModBasedMode _:
-						priority = -600;
-						break;
-					case WeaponsMode _:
-					case ToolsMode _:
-					case AccessoriesMode _:
-					case ArmorMode _:
-					case AmmoMode _:
-						priority = -600;
-						break;
-					case InInventoryMode _:
-						priority = 900;
-						break;
-					case FilteredItemsMode _:
-						priority = 1000;
-						break;
-					default:
-						priority = -10000;
-						break;
-				}
+				
+				GetPriority();
 			}
 		}
 
@@ -120,8 +87,48 @@ namespace Routed.Modules
 				Mode = (FilterMode)Activator.CreateInstance(type);
 				Mode.Module = this;
 				Mode.Load(mode.GetCompound("Data"));
+
+				GetPriority();
 			}
 			else Mode = new AnyItemsMode();
+		}
+
+		private void GetPriority()
+		{
+			switch (Mode)
+			{
+				case AnyItemsMode _:
+					priority = -1000;
+					break;
+				case MaterialsMode _:
+					priority = -900;
+					break;
+				case ConsumablesMode _:
+					priority = -800;
+					break;
+				case BuildingMode _:
+					priority = -700;
+					break;
+				case ModBasedMode _:
+					priority = -600;
+					break;
+				case WeaponsMode _:
+				case ToolsMode _:
+				case AccessoriesMode _:
+				case ArmorMode _:
+				case AmmoMode _:
+					priority = -600;
+					break;
+				case InInventoryMode _:
+					priority = 900;
+					break;
+				case FilteredItemsMode _:
+					priority = 1000;
+					break;
+				default:
+					priority = -10000;
+					break;
+			}
 		}
 	}
 }
