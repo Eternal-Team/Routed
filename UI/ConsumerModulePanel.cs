@@ -12,40 +12,40 @@ using Terraria.UI.Chat;
 
 namespace Routed.UI
 {
-	public class ConsumerModulePanel : BaseLibrary.UI.BaseUIPanel<ConsumerModule>
+	public class ConsumerModulePanel : BaseUIPanel<ConsumerModule>
 	{
-		public override void OnInitialize()
+		public ConsumerModulePanel(ConsumerModule module) : base(module)
 		{
-			Width = Height = (0, 0.25f);
-			this.Center();
+			Width.Percent = Height.Percent = 25;
 
-			BaseLibrary.UI.Elements.UIText textLabel = new BaseLibrary.UI.Elements.UIText("Consumer Module")
+
+			UIText textLabel = new UIText("Consumer Module")
 			{
-				Width = (0, 1),
-				Height = (20, 0),
-				HAlign = 0.5f,
+				Width = { Percent = 100 },
+				Height = { Pixels = 20 },
+				X = { Percent = 50 },
 				HorizontalAlignment = HorizontalAlignment.Center
 			};
-			Append(textLabel);
+			Add(textLabel);
 
-			BaseLibrary.UI.Elements.UITextButton buttonClose = new BaseLibrary.UI.Elements.UITextButton("X")
+			UITextButton buttonClose = new UITextButton("X")
 			{
 				Size = new Vector2(20),
-				Left = (-20, 1),
-				Padding = (0, 0, 0, 0),
+				X = { Pixels = -20, Percent = 100 },
+				Padding = Padding.Zero,
 				RenderPanel = false
 			};
-			buttonClose.OnClick += (evt, element) => BaseLibrary.UI.PanelUI.Instance.CloseUI(Container);
-			Append(buttonClose);
+			buttonClose.OnClick += args => PanelUI.Instance.CloseUI(Container);
+			Add(buttonClose);
 
-			BaseLibrary.UI.Elements.UIGrid<UIConsumerSlot> gridSlots = new BaseLibrary.UI.Elements.UIGrid<UIConsumerSlot>(3)
+			UIGrid<UIConsumerSlot> gridSlots = new UIGrid<UIConsumerSlot>(3)
 			{
-				Top = (28, 0),
-				Width = (136, 0),
-				Height = (-44, 1),
-				HAlign = 0.5f
+				Y = { Pixels = 28 },
+				Width = { Pixels = 136 },
+				Height = { Pixels = -44, Percent = 100 },
+				X = { Percent = 50 }
 			};
-			Append(gridSlots);
+			Add(gridSlots);
 
 			for (int i = 0; i < 9; i++)
 			{
@@ -55,16 +55,16 @@ namespace Routed.UI
 		}
 	}
 
-	public class UIConsumerSlot : BaseLibrary.UI.Elements.BaseElement
+	public class UIConsumerSlot : BaseElement
 	{
 		public Item PreviewItem;
 
 		public UIConsumerSlot()
 		{
-			Width = Height = (40, 0);
+			Width.Pixels = Height.Pixels = 40;
 		}
 
-		protected override void DrawSelf(SpriteBatch spriteBatch)
+		protected override void Draw(SpriteBatch spriteBatch)
 		{
 			spriteBatch.DrawSlot(Dimensions, Color.White, Main.inventoryBackTexture);
 
@@ -93,15 +93,15 @@ namespace Routed.UI
 
 			drawScale *= scale;
 			Vector2 position = Dimensions.Position() + Dimensions.Size() * 0.5f;
-			Vector2 origin = Utils.Size(rect) * 0.5f;
+			Vector2 origin = rect.Size() * 0.5f;
 
-			if (ItemLoader.PreDrawInInventory(item, spriteBatch, position - Utils.Size(rect) * 0.5f * drawScale, rect, item.GetAlpha(newColor), item.GetColor(Color.White), origin, drawScale * pulseScale))
+			if (ItemLoader.PreDrawInInventory(item, spriteBatch, position - rect.Size() * 0.5f * drawScale, rect, item.GetAlpha(newColor), item.GetColor(Color.White), origin, drawScale * pulseScale))
 			{
 				spriteBatch.Draw(itemTexture, position, rect, item.GetAlpha(newColor), 0f, origin, drawScale * pulseScale, SpriteEffects.None, 0f);
 				if (item.color != Color.Transparent) spriteBatch.Draw(itemTexture, position, rect, item.GetColor(Color.White), 0f, origin, drawScale * pulseScale, SpriteEffects.None, 0f);
 			}
 
-			ItemLoader.PostDrawInInventory(item, spriteBatch, position - Utils.Size(rect) * 0.5f * drawScale, rect, item.GetAlpha(newColor), item.GetColor(Color.White), origin, drawScale * pulseScale);
+			ItemLoader.PostDrawInInventory(item, spriteBatch, position - rect.Size() * 0.5f * drawScale, rect, item.GetAlpha(newColor), item.GetColor(Color.White), origin, drawScale * pulseScale);
 			if (ItemID.Sets.TrapSigned[item.type]) spriteBatch.Draw(Main.wireTexture, position + new Vector2(40f, 40f) * scale, new Rectangle(4, 58, 8, 8), Color.White, 0f, new Vector2(4f), 1f, SpriteEffects.None, 0f);
 			if (item.stack > 1)
 			{

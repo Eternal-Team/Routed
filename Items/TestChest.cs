@@ -40,11 +40,11 @@ namespace Routed.Items
 		}
 	}
 
-	public class TestChestTE : BaseTE, BaseLibrary.UI.IHasUI, IItemHandler
+	public class TestChestTE : BaseTE, IHasUI, IItemHandler
 	{
 		public override Type TileType => typeof(TestChestTile);
 		public Guid UUID { get; set; }
-		public BaseLibrary.UI.BaseUIPanel UI { get; set; }
+		public BaseUIPanel UI { get; set; }
 		public LegacySoundStyle CloseSound { get; }
 		public LegacySoundStyle OpenSound { get; }
 		public ItemHandler Handler { get; }
@@ -80,7 +80,7 @@ namespace Routed.Items
 		public override void KillMultiTile(int i, int j, int frameX, int frameY)
 		{
 			TestChestTE drawer = Utility.GetTileEntity<TestChestTE>(i, j);
-			BaseLibrary.UI.PanelUI.Instance.CloseUI(drawer);
+			PanelUI.Instance.CloseUI(drawer);
 
 			Item.NewItem(i * 16, j * 16, 32, 32, ModContent.ItemType<TestChest>());
 			drawer.Kill(i, j);
@@ -91,7 +91,7 @@ namespace Routed.Items
 			TestChestTE drawer = Utility.GetTileEntity<TestChestTE>(i, j);
 			if (drawer == null) return false;
 
-			BaseLibrary.UI.PanelUI.Instance.HandleUI(drawer);
+			PanelUI.Instance.HandleUI(drawer);
 
 			return true;
 		}
@@ -115,44 +115,42 @@ namespace Routed.Items
 		}
 	}
 
-	public class TestChestUI : BaseLibrary.UI.BaseUIPanel<TestChestTE>, IItemHandlerUI
+	public class TestChestUI : BaseUIPanel<TestChestTE>, IItemHandlerUI
 	{
 		public ItemHandler Handler => Container.Handler;
 		public string GetTexture(Item item) => "Terraria/Item_48";
 
-		public override void OnInitialize()
+		public TestChestUI(TestChestTE chest) : base(chest)
 		{
-			Width = (408, 0);
-			Height = (172, 0);
-			this.Center();
+			Width.Pixels = 408;
+			Height.Pixels = 172;
 
-			BaseLibrary.UI.Elements.UITextButton buttonClose = new BaseLibrary.UI.Elements.UITextButton("X")
+			UITextButton buttonClose = new UITextButton("X")
 			{
 				Size = new Vector2(20),
-				Left = (-20, 1),
-				Padding = (0, 0, 0, 0),
+				X = { Percent = 100 },
+				Padding = Padding.Zero,
 				RenderPanel = false
 			};
-			buttonClose.OnClick += (evt, element) => BaseLibrary.UI.PanelUI.Instance.CloseUI(Container);
-			Append(buttonClose);
+			buttonClose.OnClick += args => PanelUI.Instance.CloseUI(Container);
+			Add(buttonClose);
 
-			BaseLibrary.UI.Elements.UIText textLabel = new BaseLibrary.UI.Elements.UIText("Test Chest")
+			UIText textLabel = new UIText("Test Chest")
 			{
-				Width = (0, 1),
-				Height = (20, 0),
+				Width = { Percent = 100 },
+				Height = { Pixels = 20 },
 				HorizontalAlignment = HorizontalAlignment.Center
 			};
-			Append(textLabel);
+			Add(textLabel);
 
-			BaseLibrary.UI.Elements.UIGrid<UIContainerSlot> gridItems = new BaseLibrary.UI.Elements.UIGrid<UIContainerSlot>(9)
+			UIGrid<UIContainerSlot> gridItems = new UIGrid<UIContainerSlot>(9)
 			{
-				Width = (0, 1),
-				Height = (-28, 1),
-				Top = (28, 0),
-				OverflowHidden = true,
-				ListPadding = 4f
+				Width = { Percent = 100 },
+				Height = { Pixels = -28, Percent = 100 },
+				Y = { Pixels = 28 },
+				ListPadding = 4
 			};
-			Append(gridItems);
+			Add(gridItems);
 
 			for (int i = 0; i < Container.Handler.Slots; i++)
 			{

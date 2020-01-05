@@ -1,5 +1,5 @@
 ﻿using BaseLibrary;
-using BaseLibrary.UI;
+using BaseLibrary.UI.New;
 using ContainerLibrary;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -60,7 +60,7 @@ namespace Routed.Modules
 				Type t = Routed.markerModules[module.Mode];
 				Mode = (FilterMode)Activator.CreateInstance(t);
 				Mode.Module = this;
-				
+
 				GetPriority();
 			}
 		}

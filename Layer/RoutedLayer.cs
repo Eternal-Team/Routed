@@ -56,11 +56,11 @@ namespace Routed.Layer
 					Layer = this
 				};
 				data.Add(new Point16(posX, posY), element);
-				element.OnPlace();
 
 				element.UpdateFrame();
 				foreach (Duct neighbor in element.GetVisualNeighbors()) neighbor.UpdateFrame();
 
+				element.OnPlace();
 				return true;
 			}
 
@@ -88,10 +88,9 @@ namespace Routed.Layer
 			if (TryGetValue(posX, posY, out Duct element))
 			{
 				data.Remove(new Point16(posX, posY));
+				foreach (Duct neighbor in element.GetVisualNeighbors()) neighbor.UpdateFrame();
 				RemoveModule();
 				element.OnRemove();
-
-				foreach (Duct neighbor in element.GetVisualNeighbors()) neighbor.UpdateFrame();
 
 				Item.NewItem(posX * 16, posY * 16, TileSize * 16, TileSize * 16, element.DropItem);
 			}

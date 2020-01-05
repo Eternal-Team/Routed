@@ -1,5 +1,7 @@
 ﻿using BaseLibrary;
 using BaseLibrary.Input;
+using BaseLibrary.Input.GamePad;
+using BaseLibrary.Input.Mouse;
 using BaseLibrary.UI.New;
 using ContainerLibrary;
 using Microsoft.Xna.Framework;
@@ -45,6 +47,10 @@ namespace Routed.UI
 			this.slot = slot;
 			FuncHandler = itemHandler;
 		}
+
+		protected override void MouseDown(MouseButtonEventArgs args) => args.Handled = true;
+
+		protected override void MouseUp(MouseButtonEventArgs args) => args.Handled = true;
 
 		protected override void MouseClick(MouseButtonEventArgs args)
 		{
@@ -111,7 +117,7 @@ namespace Routed.UI
 
 			drawScale *= scale;
 			Vector2 position = Dimensions.Position() + Size * 0.5f;
-			Vector2 origin = BaseLibrary.UI.New.Extensions.Size(rect) * 0.5f;
+			Vector2 origin = rect.Size() * 0.5f;
 
 			if (ItemLoader.PreDrawInInventory(item, spriteBatch, position - origin * drawScale, rect, item.GetAlpha(newColor), item.GetColor(Color.White), origin, drawScale * pulseScale))
 			{
@@ -124,7 +130,7 @@ namespace Routed.UI
 			if (item.stack > 1)
 			{
 				string text = !ShortStackSize || item.stack < 1000 ? item.stack.ToString() : item.stack.ToSI("N1");
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, Main.fontItemStack, text, InnerDimensions.Position() + new Vector2Int(8, (int)(InnerDimensions.Height - Main.fontMouseText.MeasureString(text).Y * scale)), Color.White, 0f, Vector2.Zero, new Vector2(0.85f), -1f, scale);
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, Main.fontItemStack, text, InnerDimensions.Position() + new Vector2(8, InnerDimensions.Height - Main.fontMouseText.MeasureString(text).Y * scale), Color.White, 0f, Vector2.Zero, new Vector2(0.85f), -1f, scale);
 			}
 
 			if (IsMouseHovering)
@@ -261,7 +267,12 @@ namespace Routed.UI
 				RenderPanel = false,
 				Padding = new Padding(0)
 			};
-			buttonClose.OnClick += args => PanelUI.Instance.CloseUI(Container);
+			buttonClose.OnClick += args =>
+			{
+				if (args.Button != MouseButton.Left) return;
+
+				PanelUI.Instance.CloseUI(Container);
+			};
 			Add(buttonClose);
 
 			textQueue = new UIText("Queue")
@@ -317,7 +328,16 @@ namespace Routed.UI
 				Height = { Pixels = 40 },
 				RenderPanel = true,
 				VerticalAlignment = VerticalAlignment.Center,
-				HintText = "Search"
+				HintText = "Search",
+				Padding = new Padding(8)
+			};
+			inputSearch.OnKeyPressed += args =>
+			{
+				if (inputSearch.Focused&&(args.Key == Keys.Enter||args.Key==Keys.Escape))
+				{
+					args.Handled = true;
+					inputSearch.Focused = false;
+				}
 			};
 			inputSearch.OnTextChange += () => gridSlots.Search();
 			Add(inputSearch);
@@ -401,8 +421,8 @@ namespace Routed.UI
 				Y = { Percent = 50 },
 				X = { Pixels = 6 + (SlotSize + Padding) * 10 - Padding },
 				Width = { Pixels = 20 },
-				Height = { Pixels = 20 }
-				//HoverText = "Transfer items"
+				Height = { Pixels = 20 },
+				HoverText = "Transfer items"
 			};
 			buttonTransfer.OnClick += args =>
 			{
@@ -462,6 +482,8 @@ namespace Routed.UI
 				slot.OnClick += args => Container.RequestItem(item.type, 10);
 				gridSlots.Add(slot);
 			}
+
+			gridSlots.Search();
 		}
 
 		private class UIRequesterSlot : BaseElement
@@ -485,6 +507,10 @@ namespace Routed.UI
 				if (Item != null && !Item.IsAir) DrawItem(spriteBatch, Item, scale);
 			}
 
+			protected override void MouseDown(MouseButtonEventArgs args) => args.Handled = true;
+
+			protected override void MouseUp(MouseButtonEventArgs args) => args.Handled = true;
+
 			private void DrawItem(SpriteBatch spriteBatch, Item item, float scale)
 			{
 				Texture2D itemTexture = Main.itemTexture[item.type];
@@ -505,20 +531,20 @@ namespace Routed.UI
 
 				drawScale *= scale;
 				Vector2 position = Dimensions.Position() + Size * 0.5f;
-				Vector2 origin = Utils.Size(rect) * 0.5f;
+				Vector2 origin = rect.Size() * 0.5f;
 
-				if (ItemLoader.PreDrawInInventory(item, spriteBatch, position - Utils.Size(rect) * 0.5f * drawScale, rect, item.GetAlpha(newColor), item.GetColor(Color.White), origin, drawScale * pulseScale))
+				if (ItemLoader.PreDrawInInventory(item, spriteBatch, position - rect.Size() * 0.5f * drawScale, rect, item.GetAlpha(newColor), item.GetColor(Color.White), origin, drawScale * pulseScale))
 				{
 					spriteBatch.Draw(itemTexture, position, rect, item.GetAlpha(newColor), 0f, origin, drawScale * pulseScale, SpriteEffects.None, 0f);
 					if (item.color != Color.Transparent) spriteBatch.Draw(itemTexture, position, rect, item.GetColor(Color.White), 0f, origin, drawScale * pulseScale, SpriteEffects.None, 0f);
 				}
 
-				ItemLoader.PostDrawInInventory(item, spriteBatch, position - Utils.Size(rect) * 0.5f * drawScale, rect, item.GetAlpha(newColor), item.GetColor(Color.White), origin, drawScale * pulseScale);
+				ItemLoader.PostDrawInInventory(item, spriteBatch, position - rect.Size() * 0.5f * drawScale, rect, item.GetAlpha(newColor), item.GetColor(Color.White), origin, drawScale * pulseScale);
 				if (ItemID.Sets.TrapSigned[item.type]) spriteBatch.Draw(Main.wireTexture, position + new Vector2(40f, 40f) * scale, new Rectangle(4, 58, 8, 8), Color.White, 0f, new Vector2(4f), 1f, SpriteEffects.None, 0f);
 				if (item.stack > 1)
 				{
-					string text = item.stack < 1000 ? item.stack.ToString() : item.stack.ToSI("N1");
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, Main.fontItemStack, text, InnerDimensions.Position() + new Vector2Int(8, (int)(InnerDimensions.Height - Main.fontMouseText.MeasureString(text).Y * scale)), Color.White, 0f, Vector2.Zero, new Vector2(0.85f), -1f, scale);
+					string text = item.stack < 1000 ? item.stack.ToString() : item.stack < 100000 ? item.stack.ToSI("N1") : item.stack.ToSI("N0");
+					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, Main.fontItemStack, text, InnerDimensions.Position() + new Vector2(8, InnerDimensions.Height - Main.fontMouseText.MeasureString(text).Y * scale), Color.White, 0f, Vector2.Zero, new Vector2(0.85f), -1f, scale);
 				}
 
 				if (IsMouseHovering)

@@ -11,9 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Terraria;
 using Terraria.DataStructures;
-using Terraria.ID;
 using Terraria.ModLoader.IO;
-using Terraria.UI;
 
 namespace Routed.Layer
 {
@@ -75,7 +73,7 @@ namespace Routed.Layer
 
 					NetworkItem networkItem = new NetworkItem(handler.ExtractItem(i, extractedAmount), module.Parent, destination);
 					NetworkItems.Add(networkItem);
-					
+
 					ItemCache[item.netID] -= extractedAmount;
 					if (ItemCache[item.netID] <= 0) ItemCache.Remove(item.type);
 
@@ -91,19 +89,34 @@ namespace Routed.Layer
 
 		public bool PushItem(Item item, Duct origin)
 		{
-			// bug: will drop items on nearly full stacks
-			// select all valid marker module, loop through them, break when item.stack <= 0
-			MarkerModule module = MarkerModules.OrderByDescending(markerModule => markerModule.priority).FirstOrDefault(markerModule =>
+			foreach (MarkerModule module in MarkerModules.Where(markerModule =>
 			{
-				ItemHandler other = markerModule.GetHandler();
+				var other = markerModule.GetHandler();
 				if (other == null) return false;
 				return other.HasSpace(item) && markerModule.IsItemValid(item);
-			});
-
-			if (module != null)
+			}).OrderByDescending(markerModule => markerModule.priority))
 			{
-				NetworkItems.Add(new NetworkItem(item, origin, module.Parent));
-				return true;
+				ItemHandler handler = module.GetHandler();
+
+				int sum = 0;
+				for (int i = 0; i < handler.Slots; i++)
+				{
+					Item slot = handler.Items[i];
+					int slotLimit = handler.GetItemLimit(i) ?? item.maxStack;
+
+					if (slot.IsAir) sum += slotLimit;
+					else if (slot.type == item.type) sum += slotLimit - slot.stack;
+				}
+
+				Item sent = new Item();
+				sent.SetDefaults(item.type);
+				int extracted = Math.Min(sum, item.stack);
+				sent.stack = extracted;
+				item.stack -= extracted;
+
+				NetworkItems.Add(new NetworkItem(sent, origin, module.Parent));
+
+				if (item.stack <= 0) return true;
 			}
 
 			return false;
@@ -187,8 +200,6 @@ namespace Routed.Layer
 
 		internal void Update()
 		{
-			//Main.NewText($"Currently caching {ItemCache.Count} types and {ItemCache.Sum(pair => pair.Value)} items");
-
 			for (int i = 0; i < NetworkItems.Count; i++)
 			{
 				NetworkItem item = NetworkItems[i];

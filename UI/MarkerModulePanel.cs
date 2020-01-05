@@ -9,49 +9,49 @@ using Terraria.ModLoader;
 
 namespace Routed.UI
 {
-	public class MarkerModulePanel : BaseLibrary.UI.BaseUIPanel<MarkerModule>
+	public class MarkerModulePanel : BaseUIPanel<MarkerModule>
 	{
-		public override void OnInitialize()
+		public MarkerModulePanel(MarkerModule module) : base(module)
 		{
-			Width = (408, 0);
-			Height = (172, 0);
-			this.Center();
+			Width.Pixels = 408;
+			Height.Pixels = 172;
 
-			BaseLibrary.UI.Elements.UITextButton buttonClose = new BaseLibrary.UI.Elements.UITextButton("X")
+
+			UITextButton buttonClose = new UITextButton("X")
 			{
 				Size = new Vector2(20),
-				Left = (-20, 1),
-				Padding = (0, 0, 0, 0),
+				X = { Pixels = -20, Percent = 100 },
+				Padding = Padding.Zero,
 				RenderPanel = false
 			};
-			buttonClose.OnClick += (evt, element) => BaseLibrary.UI.PanelUI.Instance.CloseUI(Container);
-			Append(buttonClose);
+			buttonClose.OnClick += args => PanelUI.Instance.CloseUI(Container);
+			Add(buttonClose);
 
-			BaseLibrary.UI.Elements.UIText textLabel = new BaseLibrary.UI.Elements.UIText("Marker Module")
+			UIText textLabel = new UIText("Marker Module")
 			{
-				Width = (0, 1),
-				Height = (20, 0),
+				Width = { Percent = 100 },
+				Height = { Pixels = 20 },
 				HorizontalAlignment = HorizontalAlignment.Center
 			};
-			Append(textLabel);
+			Add(textLabel);
 
 			switch (Container.Mode)
 			{
 				case FilteredItemsMode mode:
 				{
-					BaseLibrary.UI.Elements.UIGrid<UIConsumerSlot> grid = new BaseLibrary.UI.Elements.UIGrid<UIConsumerSlot>(9)
+					UIGrid<UIConsumerSlot> grid = new UIGrid<UIConsumerSlot>(9)
 					{
-						Width = (0, 1),
-						Height = (-28, 1),
-						Top = (28, 0)
+						Width = { Percent = 100 },
+						Height = { Pixels = -28, Percent = 100 },
+						Y = { Pixels = 28 }
 					};
-					Append(grid);
+					Add(grid);
 
 					for (int i = 0; i < mode.whitelist.Count; i++)
 					{
 						UIConsumerSlot slot = new UIConsumerSlot { PreviewItem = new Item() };
 						var i1 = i;
-						slot.OnClick += (evt, element) =>
+						slot.OnClick += args =>
 						{
 							mode.whitelist[i1] = Main.mouseItem.type;
 							slot.PreviewItem.SetDefaults(Main.mouseItem.type);
@@ -64,13 +64,13 @@ namespace Routed.UI
 				}
 				case ModBasedMode mode:
 				{
-					BaseLibrary.UI.Elements.UIGrid<UIModItem> grid = new BaseLibrary.UI.Elements.UIGrid<UIModItem>
+					UIGrid<UIModItem> grid = new UIGrid<UIModItem>
 					{
-						Width = (0, 1),
-						Height = (-28, 1),
-						Top = (28, 0)
+						Width = { Percent = 100 },
+						Height = { Pixels = -28, Percent = 100 },
+						Y = { Pixels = 28 }
 					};
-					Append(grid);
+					Add(grid);
 
 					foreach (Mod mod in ModLoader.Mods)
 					{
@@ -78,15 +78,15 @@ namespace Routed.UI
 
 						UIModItem item = new UIModItem(mod)
 						{
-							Width = (0, 1),
-							Height = (24, 0),
+							Width = { Percent = 100 },
+							Height = { Pixels = 24 },
 							TextColor = mode.mod == mod ? Color.LimeGreen : Color.White
 						};
-						item.OnClick += (evt, element) =>
+						item.OnClick += args =>
 						{
 							mode.mod = mod;
 
-							grid.Items.ForEach(modItem => modItem.TextColor = Color.White);
+							grid.Children.ForEach(modItem => (modItem as UIModItem).TextColor = Color.White);
 							item.TextColor = Color.LimeGreen;
 						};
 						grid.Add(item);
@@ -97,7 +97,7 @@ namespace Routed.UI
 			}
 		}
 
-		private class UIModItem : BaseLibrary.UI.Elements.BaseElement
+		private class UIModItem : BaseElement
 		{
 			public Color TextColor
 			{
@@ -105,21 +105,21 @@ namespace Routed.UI
 			}
 
 			private Mod mod;
-			private BaseLibrary.UI.Elements.UIText text;
+			private UIText text;
 
 			public UIModItem(Mod mod)
 			{
 				this.mod = mod;
-				SetPadding(0);
+				Padding = Padding.Zero;
 
-				text = new BaseLibrary.UI.Elements.UIText(mod.DisplayName)
+				text = new UIText(mod.DisplayName)
 				{
-					Width = (0, 1),
-					Height = (0, 1),
+					Width = { Percent = 100 },
+					Height = { Percent = 100 },
 					HorizontalAlignment = HorizontalAlignment.Left,
 					VerticalAlignment = VerticalAlignment.Center
 				};
-				Append(text);
+				Add(text);
 			}
 		}
 	}

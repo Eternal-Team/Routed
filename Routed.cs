@@ -57,12 +57,12 @@ namespace Routed
 
 			EmitDynamicItems();
 		}
-		
+
 		public override void Unload() => this.UnloadNullableTypes();
 
 		public override void PostSetupContent()
 		{
-			if (!Main.dedServ) Input.Layers.PushLayer(new RLayer());
+			if (!Main.dedServ) BaseLibrary.BaseLibrary.Layers.PushLayer(new RLayer());
 		}
 	}
 

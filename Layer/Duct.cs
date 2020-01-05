@@ -58,7 +58,7 @@ namespace Routed.Layer
 				}
 			}
 
-			//spriteBatch.Draw(Main.magicPixel, new Rectangle((int)(position.X - 8), (int)(position.Y - 8), 16, 16), Network.debugColor);
+			if (isNode) spriteBatch.Draw(Main.magicPixel, new Rectangle((int)(position.X - 4), (int)(position.Y - 4), 8, 8), Color.Red);
 
 			Module?.Draw(spriteBatch);
 		}
@@ -87,7 +87,11 @@ namespace Routed.Layer
 			if (Layer.ContainsKey(Position.X + 1, Position.Y - 1)) yield return Layer[Position.X + 1, Position.Y - 1];
 		}
 
-		public override bool Interact() => Module?.Interact() ?? false;
+		public override bool Interact()
+		{
+			Main.NewText(frame);
+			return Module?.Interact() ?? false;
+		}
 
 		public override void Load(TagCompound tag)
 		{
@@ -101,7 +105,7 @@ namespace Routed.Layer
 					Module.Load(module.GetCompound("Data"));
 				}
 			}
-			catch 
+			catch
 			{
 			}
 		}
@@ -120,12 +124,31 @@ namespace Routed.Layer
 				RoutedNetwork.Networks.Remove(duct.Network);
 				duct.Network = network;
 			}
+
+			foreach (Duct duct in network.Tiles)
+			{
+				if ((duct.frame & 1) != 0 && (duct.frame & 16) != 0 && (duct.frame & 4) == 0 && (duct.frame & 64) == 0) duct.isNode = false;
+				else if ((duct.frame & 1) == 0 && (duct.frame & 16) == 0 && (duct.frame & 4) != 0 && (duct.frame & 64) != 0) duct.isNode = false;
+				else duct.isNode = true;
+			}
 		}
+
+		private bool isNode;
 
 		public override void OnRemove()
 		{
 			if (Network.Tiles.Count == 1) RoutedNetwork.Networks.Remove(Network);
-			else if (GetNeighbors().Count() == 1) Network.Tiles.Remove(this);
+			else if (GetNeighbors().Count() == 1)
+			{
+				Network.Tiles.Remove(this);
+
+				foreach (Duct duct in Network.Tiles)
+				{
+					if ((duct.frame & 1) != 0 && (duct.frame & 16) != 0 && (duct.frame & 4) == 0 && (duct.frame & 64) == 0) duct.isNode = false;
+					else if ((duct.frame & 1) == 0 && (duct.frame & 16) == 0 && (duct.frame & 4) != 0 && (duct.frame & 64) != 0) duct.isNode = false;
+					else duct.isNode = true;
+				}
+			}
 			else
 			{
 				List<Point16> visited = new List<Point16>();
@@ -165,6 +188,10 @@ namespace Routed.Layer
 							duct.Network.NetworkItems.Clear();
 							RoutedNetwork.Networks.Remove(duct.Network);
 							duct.Network = network;
+
+							if ((duct.frame & 1) != 0 && (duct.frame & 16) != 0 && (duct.frame & 4) == 0 && (duct.frame & 64) == 0) duct.isNode = false;
+							else if ((duct.frame & 1) == 0 && (duct.frame & 16) == 0 && (duct.frame & 4) != 0 && (duct.frame & 64) != 0) duct.isNode = false;
+							else duct.isNode = true;
 						}
 					}
 				}

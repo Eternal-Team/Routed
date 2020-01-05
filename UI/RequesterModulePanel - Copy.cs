@@ -46,48 +46,48 @@
 
 //		public override void OnInitialize()
 //		{
-//			Width = (60 + (SlotSize + Padding) * Columns - Padding, 0);
+//			Width.Pixels = 60 + (SlotSize + Padding) * Columns - Padding;
 //			Height = (144 + (SlotSize + Padding) * (Rows + 2) - Padding * 2, 0);
-//			this.Center();
+//			
 
 //			UITextButton buttonClose = new UITextButton("X")
 //			{
 //				Size = new Vector2(20),
-//				Left = (-20, 1),
-//				Padding = (0, 0, 0, 0),
+//				X = { Pixels = -20, Percent = 100)
+//				Padding = Padding.Zero,
 //				RenderPanel = false
 //			};
-//			buttonClose.OnClick += (evt, element) => PanelUI.Instance.CloseUI(Container);
-//			Append(buttonClose);
+//			buttonClose.OnClick += (args) => PanelUI.Instance.CloseUI(Container);
+//			Add(buttonClose);
 
 //			textQueue = new UIText("Queue")
 //			{
-//				Width = (0, 0.5f),
+//				Width = { Pixels = 0.5f)
 //				HorizontalAlignment = HorizontalAlignment.Left
 //			};
-//			Append(textQueue);
+//			Add(textQueue);
 
 //			UIText textLabel = new UIText("Requester Module")
 //			{
-//				Width = (0, 1),
+//				Width = {  Percent = 100)
 //				HorizontalAlignment = HorizontalAlignment.Center
 //			};
-//			Append(textLabel);
+//			Add(textLabel);
 
 //			UIPanel panel = new UIPanel
 //			{
-//				Top = (28, 0),
-//				Width = (0, 1),
-//				Height = ((SlotSize + Padding) * Rows - Padding, 0),
+//				Y = { Pixels = 28)
+//				Width = {  Percent = 100)
+//				Height = { Pixels = (SlotSize + Padding) * Rows - Padding)
 //				BorderColor = Color.Transparent,
 //				BackgroundColor = Utility.ColorPanel_Selected * 0.75f
 //			};
-//			Append(panel);
+//			Add(panel);
 
 //			gridSlots = new UIGrid<UIRequesterSlot>(Columns)
 //			{
-//				Width = (-26, 1),
-//				Height = (0, 1),
+//				Width = { Pixels = -26, Percent = 100)
+//				Height = {  Percent = 100)
 //				ListPadding = Padding
 //			};
 //			gridSlots.SearchSelector += item =>
@@ -99,60 +99,60 @@
 
 //				return itemName.Contains(searchName);
 //			};
-//			panel.Append(gridSlots);
+//			panel.Add(gridSlots);
 
-//			gridSlots.scrollbar.HAlign = 1;
-//			gridSlots.scrollbar.Top = (0, 0);
-//			gridSlots.scrollbar.Height = (0, 1);
-//			panel.Append(gridSlots.scrollbar);
+//			gridSlots.scrollbar.X.Percent = 100;
+//			gridSlots.scrollbar.Y = { Pixels = 0 };
+//			gridSlots.scrollbar.Height. Percent = 100;
+//			panel.Add(gridSlots.scrollbar);
 
 //			UITextInput inputSearch = new UITextInput(ref search)
 //			{
-//				Top = (36 + (SlotSize + Padding) * Rows - Padding, 0),
-//				Width = (0, 1),
-//				Height = (40, 0),
+//				Y = { Pixels = 36 + (SlotSize + Padding } * Rows - Padding)
+//				Width = {  Percent = 100)
+//				Height = { Pixels = 40)
 //				RenderPanel = true,
 //				VerticalAlignment = VerticalAlignment.Center,
 //				HintText = "Search"
 //			};
 //			inputSearch.OnTextChange += () => gridSlots.Search();
-//			Append(inputSearch);
-			
+//			Add(inputSearch);
+
 //			// requested items
 //			{
 //				UIText textRequestedItem = new UIText("Requested Items")
 //				{
-//					Width = ((SlotSize + Padding) * 10 - Padding, 0),
+//					Width = { Pixels = (SlotSize + Padding) * 10 - Padding)
 //					MarginLeft = 8,
-//					Top = (84 + (SlotSize + Padding) * Rows - Padding, 0),
+//					Y = { Pixels = 84 + (SlotSize + Padding) * Rows - Padding)
 //					HorizontalAlignment = HorizontalAlignment.Center
 //				};
-//				Append(textRequestedItem);
+//				Add(textRequestedItem);
 
 //				panel = new UIPanel
 //				{
-//					Top = (112 + (SlotSize + Padding) * Rows - Padding, 0),
-//					Width = (0, 1),
-//					Height = (16 + (SlotSize + Padding) * 2 - Padding, 0),
+//					Y = { Pixels = 112 + (SlotSize + Padding) * Rows - Padding)
+//					Width = {  Percent = 100)
+//					Height = { Pixels = 16 + (SlotSize + Padding) * 2 - Padding)
 //					BorderColor = Color.Transparent,
 //					BackgroundColor = Utility.ColorPanel_Selected * 0.75f
 //				};
-//				Append(panel);
+//				Add(panel);
 
 //				UIGrid<UIContainerSlot> gridOutout = new UIGrid<UIContainerSlot>(10)
 //				{
-//					Width = ((SlotSize + Padding) * 10, 0),
-//					Height = (0, 1),
+//					Width = { Pixels = (SlotSize + Padding) * 10)
+//					Height = {  Percent = 100)
 //					ListPadding = Padding
 //				};
-//				panel.Append(gridOutout);
+//				panel.Add(gridOutout);
 
 //				for (int i = 0; i < Container.Handler.Slots; i++)
 //				{
 //					UIContainerSlot slot = new UIContainerSlot(() => Container.Handler, i)
 //					{
-//						Width = (SlotSize, 0),
-//						Height = (SlotSize, 0)
+//						Width = { Pixels = SlotSize)
+//						Height = { Pixels = SlotSize)
 //					};
 //					slot.SetPadding(2);
 //					gridOutout.Add(slot);
@@ -163,44 +163,44 @@
 //			{
 //				UIText textReturnItems = new UIText("Return")
 //				{
-//					Width = ((SlotSize + Padding) * 3 - Padding, 0),
+//					Width = { Pixels = (SlotSize + Padding } * 3 - Padding)
 //					MarginRight = 8,
-//					HAlign = 1,
-//					Top = (84 + (SlotSize + Padding) * Rows - Padding, 0),
+//					X.Percent = 100,
+//					Y = { Pixels = 84 + (SlotSize + Padding) * Rows - Padding)
 //					HorizontalAlignment = HorizontalAlignment.Center
 //				};
-//				Append(textReturnItems);
+//				Add(textReturnItems);
 
 //				UIGrid<UIContainerSlot> gridInput = new UIGrid<UIContainerSlot>(3)
 //				{
-//					Width = ((SlotSize + Padding) * 3 - Padding, 0),
-//					Height = (0, 1),
-//					HAlign = 1,
+//					Width = { Pixels = (SlotSize + Padding) * 3 - Padding)
+//					Height = {  Percent = 100)
+//					X.Percent = 100,
 //					ListPadding = Padding
 //				};
-//				panel.Append(gridInput);
+//				panel.Add(gridInput);
 
 //				for (int i = 0; i < Container.ReturnHandler.Slots; i++)
 //				{
 //					UIContainerSlot slot = new UIContainerSlot(() => Container.ReturnHandler, i)
 //					{
-//						Width = (SlotSize, 0),
-//						Height = (SlotSize, 0)
+//						Width = { Pixels = SlotSize)
+//						Height = { Pixels = SlotSize)
 //					};
 //					slot.SetPadding(2);
 //					gridInput.Add(slot);
 //				}
 //			}
 
-//			UIButton buttonTransfer = new UIButton(ModContent.GetTexture("BaseLibrary/Textures/UI/QuickStack"))
+//			UIButton buttonTransfer = new UIButton(ModContent.GetTexture("BaseLibrary/Textures/UI/QuickStack") }
 //			{
-//				VAlign = 0.5f,
-//				Left = (6 + (SlotSize + Padding) * 10 - Padding, 0),
-//				Width = (20, 0),
-//				Height = (20, 0),
+//				Y = {Percent=50},
+//				X = { Pixels = 6 + (SlotSize + Padding) * 10 - Padding)
+//				Width = { Pixels = 20)
+//				Height = { Pixels = 20)
 //				HoverText = "Transfer items"
 //			};
-//			buttonTransfer.OnClick += (evt, element) =>
+//			buttonTransfer.OnClick += (args) =>
 //			{
 //				for (int i = 0; i < Container.Handler.Slots; i++)
 //				{
@@ -211,12 +211,12 @@
 
 //				Recipe.FindRecipes();
 //			};
-//			panel.Append(buttonTransfer);
+//			panel.Add(buttonTransfer);
 
 //			UpdateGrid();
 //		}
 
-//		public override void Update(GameTime gameTime)
+//		protected override void Update(GameTime gameTime)
 //		{
 //			base.Update(gameTime);
 
@@ -250,12 +250,12 @@
 
 //				UIRequesterSlot slot = new UIRequesterSlot
 //				{
-//					Width = (SlotSize, 0),
-//					Height = (SlotSize, 0),
+//					Width = { Pixels = SlotSize)
+//					Height = { Pixels = SlotSize)
 //					Item = item
 //				};
 //				slot.SetPadding(2);
-//				slot.OnClick += (evt, element) => Container.RequestItem(item.type, 10);
+//				slot.OnClick += (args) => Container.RequestItem(item.type, 10);
 //				gridSlots.Add(slot);
 //			}
 //		}
@@ -266,13 +266,13 @@
 
 //			public UIRequesterSlot()
 //			{
-//				Width = (40, 0);
-//				Height = (40, 0);
+//				Width = { Pixels = 40 };
+//				Height.Pixels = 40;
 //			}
 
 //			public override int CompareTo(object obj) => Item.type.CompareTo((obj as UIRequesterSlot)?.Item.type);
 
-//			protected override void DrawSelf(SpriteBatch spriteBatch)
+//			protected override void Draw(SpriteBatch spriteBatch }
 //			{
 //				spriteBatch.DrawSlot(Dimensions, Color.White, Main.inventoryBackTexture);
 
@@ -330,3 +330,4 @@
 //		}
 //	}
 //}
+

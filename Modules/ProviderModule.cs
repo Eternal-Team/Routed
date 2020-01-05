@@ -1,5 +1,5 @@
 ﻿using BaseLibrary;
-using BaseLibrary.UI;
+using BaseLibrary.UI.New;
 using ContainerLibrary;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -30,6 +30,10 @@ namespace Routed.Modules
 		{
 			Vector2 position = Parent.Position.ToScreenCoordinates(false);
 			spriteBatch.Draw(ModContent.GetTexture("Routed/Textures/Modules/ProviderModule"), position, Color.White);
+		}
+
+		public override void Update()
+		{
 		}
 
 		public override ItemHandler GetHandler()
