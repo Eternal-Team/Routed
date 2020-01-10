@@ -2,7 +2,7 @@
 using BaseLibrary.Items;
 using BaseLibrary.Tiles;
 using BaseLibrary.Tiles.TileEntites;
-using BaseLibrary.UI.New;
+using BaseLibrary.UI;
 using ContainerLibrary;
 using Microsoft.Xna.Framework;
 using System;

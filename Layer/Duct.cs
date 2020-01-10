@@ -87,11 +87,7 @@ namespace Routed.Layer
 			if (Layer.ContainsKey(Position.X + 1, Position.Y - 1)) yield return Layer[Position.X + 1, Position.Y - 1];
 		}
 
-		public override bool Interact()
-		{
-			Main.NewText(frame);
-			return Module?.Interact() ?? false;
-		}
+		public override bool Interact() => Module?.Interact() ?? false;
 
 		public override void Load(TagCompound tag)
 		{

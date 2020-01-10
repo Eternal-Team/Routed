@@ -1,8 +1,7 @@
 ﻿using BaseLibrary;
 using BaseLibrary.Input;
-using BaseLibrary.Input.GamePad;
 using BaseLibrary.Input.Mouse;
-using BaseLibrary.UI.New;
+using BaseLibrary.UI;
 using ContainerLibrary;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -25,7 +24,7 @@ namespace Routed.UI
 		private const int Columns = 13;
 		private const int Rows = 6;
 		private const int SlotSize = 44;
-		private new const int Padding = 4;
+		private const int Padding = 4;
 		public ItemHandler Handler => Container.ReturnHandler;
 		public string GetTexture(Item item) => "Routed/Textures/Modules/RequesterModule";
 		private UIGrid<UIRequesterSlot> gridSlots;
@@ -126,7 +125,7 @@ namespace Routed.UI
 			};
 			inputSearch.OnKeyPressed += args =>
 			{
-				if (inputSearch.Focused&&(args.Key == Keys.Enter||args.Key==Keys.Escape))
+				if (inputSearch.Focused && (args.Key == Keys.Enter || args.Key == Keys.Escape))
 				{
 					args.Handled = true;
 					inputSearch.Focused = false;

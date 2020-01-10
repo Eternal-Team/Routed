@@ -3,6 +3,7 @@ using ContainerLibrary;
 using LayerLibrary;
 using Routed.Modules;
 using System.Collections.Generic;
+using System.Linq;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader.IO;
@@ -61,16 +62,20 @@ namespace Routed.Layer
 					{
 						BaseModule module = duct.Module;
 						ItemHandler handler = module.GetHandler();
+						if (handler != null)
+						{
+							int count = item.stack;
+							int id = item.netID;
 
-						int count = item.stack;
-						int id = item.netID;
+							handler.InsertItem(ref item);
 
-						handler?.InsertItem(ref item);
+							if (duct.Network.HandlerCache.TryGetValue(handler, out var list) && list.Any(baseModule => baseModule is ProviderModule))
+							{
+								duct.Network.ItemCache[id] += count - item.stack;
+							}
 
-						// bug: only provider modules should add to total item count, probably need to map ItemHandler's to provider modules
-						if (module is MarkerModule) duct.Network.ItemCache[id] += count - item.stack;
-
-						duct.Network.UpdateUIs();
+							duct.Network.UpdateUIs();
+						}
 					}
 
 					if (!item.IsAir)

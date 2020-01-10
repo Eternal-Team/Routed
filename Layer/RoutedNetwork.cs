@@ -1,5 +1,5 @@
 ﻿using BaseLibrary;
-using BaseLibrary.UI.New;
+using BaseLibrary.UI;
 using ContainerLibrary;
 using LayerLibrary;
 using Microsoft.Xna.Framework;
@@ -46,11 +46,14 @@ namespace Routed.Layer
 
 		public List<ExtractorModule> ExtractorModules => Tiles.Select(duct => duct.Module).OfType<ExtractorModule>().ToList();
 
+		// bug: item cache doesn't update when user interacts with inventory
 		public AutoAddDictionary<int, int> ItemCache = new AutoAddDictionary<int, int>();
 
 		public List<NetworkItem> NetworkItems = new List<NetworkItem>();
 
 		public List<Duct> Tiles = new List<Duct>();
+
+		public Dictionary<ItemHandler, List<BaseModule>> HandlerCache = new Dictionary<ItemHandler, List<BaseModule>>();
 
 		internal RoutedNetwork()
 		{
@@ -200,6 +203,21 @@ namespace Routed.Layer
 
 		internal void Update()
 		{
+			HandlerCache.Clear();
+
+			for (int i = 0; i < Tiles.Count; i++)
+			{
+				Duct duct = Tiles[i];
+				ItemHandler handler = duct.Module?.GetHandler();
+				if (handler != null)
+				{
+					if (HandlerCache.ContainsKey(handler)) HandlerCache[handler].Add(duct.Module);
+					else HandlerCache.Add(handler, new List<BaseModule> { duct.Module });
+				}
+			}
+
+			Main.NewText("Tracking " + HandlerCache.Count + " handlers and " + HandlerCache.Sum(pair => pair.Value.Count) + " modules");
+
 			for (int i = 0; i < NetworkItems.Count; i++)
 			{
 				NetworkItem item = NetworkItems[i];
