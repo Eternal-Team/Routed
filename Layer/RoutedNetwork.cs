@@ -46,7 +46,6 @@ namespace Routed.Layer
 
 		public List<ExtractorModule> ExtractorModules => Tiles.Select(duct => duct.Module).OfType<ExtractorModule>().ToList();
 
-		// bug: item cache doesn't update when user interacts with inventory
 		public AutoAddDictionary<int, int> ItemCache = new AutoAddDictionary<int, int>();
 
 		public List<NetworkItem> NetworkItems = new List<NetworkItem>();
