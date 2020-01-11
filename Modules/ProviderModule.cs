@@ -1,6 +1,5 @@
 ﻿using BaseLibrary;
 using BaseLibrary.UI;
-using ContainerLibrary;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Routed.Layer;
@@ -32,34 +31,10 @@ namespace Routed.Modules
 			spriteBatch.Draw(ModContent.GetTexture("Routed/Textures/Modules/ProviderModule"), position, Color.White);
 		}
 
-		private ItemHandler cache;
-
-		public override ItemHandler GetHandler()
-		{
-			if (Utility.TryGetTileEntity(Parent.Position, out ModTileEntity te) && te is IItemHandler handler)
-			{
-				if (cache != handler.Handler)
-				{
-					if (cache != null) cache.OnContentsChanged -= OnHandlerOnContentsChanged;
-
-					cache = handler.Handler;
-					handler.Handler.OnContentsChanged += OnHandlerOnContentsChanged;
-				}
-
-				return handler.Handler;
-			}
-
-			return null;
-		}
-
-		private void OnHandlerOnContentsChanged(int slot)
-		{
-			Network.RegenerateCache();
-			Network.UpdateUIs();
-		}
-
 		public override void Load(TagCompound tag)
 		{
+			base.Load(tag);
+
 			UUID = tag.Get<Guid>("UUID");
 		}
 

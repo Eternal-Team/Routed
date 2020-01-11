@@ -211,7 +211,7 @@ namespace Routed.Layer
 
 		public override void Update()
 		{
-			Module?.Update();
+			Module?.InternalUpdate();
 		}
 
 		public override void UpdateFrame()

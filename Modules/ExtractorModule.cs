@@ -41,12 +41,6 @@ namespace Routed.Modules
 			spriteBatch.Draw(ModContent.GetTexture("Routed/Textures/Modules/ExtractorModule"), position, Color.White);
 		}
 
-		public override ItemHandler GetHandler()
-		{
-			if (Utility.TryGetTileEntity(Parent.Position, out ModTileEntity te) && te is IItemHandler handler) return handler.Handler;
-			return null;
-		}
-
 		public override void Load(TagCompound tag)
 		{
 			ExtractionSpeed = tag.GetInt("ExtractionSpeed");
@@ -68,15 +62,13 @@ namespace Routed.Modules
 			["ItemsPerExtraction"] = ItemsPerExtraction
 		};
 
-		public override void Update()
+		protected override void Update()
 		{
 			if (timer++ < ExtractionSpeed) return;
 			timer = 0;
 
 			ItemHandler handler = GetHandler();
 			if (handler == null) return;
-
-			// todo: add conditions to extraction (leave x in, take specific items, etc.)
 
 			for (int i = 0; i < handler.Slots; i++)
 			{

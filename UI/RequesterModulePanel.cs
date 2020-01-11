@@ -24,7 +24,7 @@ namespace Routed.UI
 		private const int Columns = 13;
 		private const int Rows = 6;
 		private const int SlotSize = 44;
-		private const int Padding = 4;
+		private new const int Padding = 4;
 		public ItemHandler Handler => Container.ReturnHandler;
 		public string GetTexture(Item item) => "Routed/Textures/Modules/RequesterModule";
 		private UIGrid<UIRequesterSlot> gridSlots;

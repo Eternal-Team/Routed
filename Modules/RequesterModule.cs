@@ -38,7 +38,7 @@ namespace Routed.Modules
 			UUID = Guid.NewGuid();
 
 			Handler = new ItemHandler(20);
-			Handler.OnContentsChanged += slot =>
+			Handler.OnContentsChanged += (slot, user) =>
 			{
 				if (UI != null) Recipe.FindRecipes();
 			};
@@ -98,7 +98,7 @@ namespace Routed.Modules
 			["ReturnItems"] = ReturnHandler.Save()
 		};
 
-		public override void Update()
+		protected override void Update()
 		{
 			if (UI != null && Vector2.DistanceSquared(Main.LocalPlayer.position, new Vector2(Parent.Position.X, Parent.Position.Y) * 16) > 9216) PanelUI.Instance.CloseUI(this);
 
