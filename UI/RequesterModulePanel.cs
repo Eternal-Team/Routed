@@ -23,8 +23,7 @@ namespace Routed.UI
 	{
 		private const int Columns = 13;
 		private const int Rows = 6;
-		private const int SlotSize = 44;
-		private new const int Padding = 4;
+
 		public ItemHandler Handler => Container.ReturnHandler;
 		public string GetTexture(Item item) => "Routed/Textures/Modules/RequesterModule";
 		private UIGrid<UIRequesterSlot> gridSlots;
@@ -47,8 +46,8 @@ namespace Routed.UI
 
 		public RequesterModulePanel(RequesterModule module) : base(module)
 		{
-			Width.Pixels = 60 + (SlotSize + Padding) * Columns - Padding;
-			Height.Pixels = 144 + (SlotSize + Padding) * (Rows + 2) - Padding * 2;
+			Width.Pixels = 60 + (SlotSize + SlotMargin) * Columns - SlotMargin;
+			Height.Pixels = 144 + (SlotSize + SlotMargin) * (Rows + 2) - SlotMargin * 2;
 			X.Percent = Y.Percent = 50;
 
 			UITextButton buttonClose = new UITextButton("X")
@@ -85,7 +84,7 @@ namespace Routed.UI
 			{
 				Y = { Pixels = 28 },
 				Width = { Percent = 100 },
-				Height = { Pixels = (SlotSize + Padding) * Rows - Padding },
+				Height = { Pixels = (SlotSize + SlotMargin) * Rows - SlotMargin },
 				BorderColor = Color.Transparent,
 				BackgroundColor = Utility.ColorPanel_Selected * 0.75f
 			};
@@ -95,7 +94,7 @@ namespace Routed.UI
 			{
 				Width = { Percent = 100, Pixels = -26 },
 				Height = { Percent = 100 },
-				ListPadding = Padding
+				ListPadding = SlotMargin
 			};
 			gridSlots.SearchSelector += item =>
 			{
@@ -115,7 +114,7 @@ namespace Routed.UI
 
 			UITextInput inputSearch = new UITextInput(ref search)
 			{
-				Y = { Pixels = 36 + (SlotSize + Padding) * Rows - Padding },
+				Y = { Pixels = 36 + (SlotSize + SlotMargin) * Rows - SlotMargin },
 				Width = { Percent = 100 },
 				Height = { Pixels = 40 },
 				RenderPanel = true,
@@ -138,18 +137,18 @@ namespace Routed.UI
 			{
 				UIText textRequestedItem = new UIText("Requested Items")
 				{
-					Width = { Pixels = (SlotSize + Padding) * 10 - Padding },
+					Width = { Pixels = (SlotSize + SlotMargin) * 10 - SlotMargin },
 					Margin = new Margin(8, 0, 0, 0),
-					Y = { Pixels = 84 + (SlotSize + Padding) * Rows - Padding },
+					Y = { Pixels = 84 + (SlotSize + SlotMargin) * Rows - SlotMargin },
 					HorizontalAlignment = HorizontalAlignment.Center
 				};
 				Add(textRequestedItem);
 
 				panel = new UIPanel
 				{
-					Y = { Pixels = 112 + (SlotSize + Padding) * Rows - Padding },
+					Y = { Pixels = 112 + (SlotSize + SlotMargin) * Rows - SlotMargin },
 					Width = { Percent = 100 },
-					Height = { Pixels = 16 + (SlotSize + Padding) * 2 - Padding },
+					Height = { Pixels = 16 + (SlotSize + SlotMargin) * 2 - SlotMargin },
 					BorderColor = Color.Transparent,
 					BackgroundColor = Utility.ColorPanel_Selected * 0.75f
 				};
@@ -157,9 +156,9 @@ namespace Routed.UI
 
 				UIGrid<UIContainerSlot> gridOutout = new UIGrid<UIContainerSlot>(10)
 				{
-					Width = { Pixels = (SlotSize + Padding) * 10 },
+					Width = { Pixels = (SlotSize + SlotMargin) * 10 },
 					Height = { Percent = 100 },
-					ListPadding = Padding
+					ListPadding = SlotMargin
 				};
 				panel.Add(gridOutout);
 
@@ -179,20 +178,20 @@ namespace Routed.UI
 			{
 				UIText textReturnItems = new UIText("Return")
 				{
-					Width = { Pixels = (SlotSize + Padding) * 3 - Padding },
+					Width = { Pixels = (SlotSize + SlotMargin) * 3 - SlotMargin },
 					Margin = new Margin(0, 0, 8, 0),
 					X = { Percent = 100 },
-					Y = { Pixels = 84 + (SlotSize + Padding) * Rows - Padding },
+					Y = { Pixels = 84 + (SlotSize + SlotMargin) * Rows - SlotMargin },
 					HorizontalAlignment = HorizontalAlignment.Center
 				};
 				Add(textReturnItems);
 
 				UIGrid<UIContainerSlot> gridInput = new UIGrid<UIContainerSlot>(3)
 				{
-					Width = { Pixels = (SlotSize + Padding) * 3 - Padding },
+					Width = { Pixels = (SlotSize + SlotMargin) * 3 - SlotMargin },
 					Height = { Percent = 100 },
 					X = { Percent = 100 },
-					ListPadding = Padding
+					ListPadding = SlotMargin
 				};
 				panel.Add(gridInput);
 
@@ -211,7 +210,7 @@ namespace Routed.UI
 			UIButton buttonTransfer = new UIButton(ModContent.GetTexture("BaseLibrary/Textures/UI/QuickStack"))
 			{
 				Y = { Percent = 50 },
-				X = { Pixels = 6 + (SlotSize + Padding) * 10 - Padding },
+				X = { Pixels = 6 + (SlotSize + SlotMargin) * 10 - SlotMargin },
 				Width = { Pixels = 20 },
 				Height = { Pixels = 20 },
 				HoverText = "Transfer items"

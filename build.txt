@@ -1,7 +1,7 @@
 ﻿author = Itorius & team
 version = 0.1
 displayName = Routed
-homepage = http://forums.terraria.org/index.php?threads/itorius-mods.42289/
+homepage = https://terraria.itorius.com
 hideCode = false
 hideResources = false
 includeSource = false

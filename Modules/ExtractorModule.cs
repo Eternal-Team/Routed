@@ -1,16 +1,22 @@
 ﻿using BaseLibrary;
+using BaseLibrary.UI;
 using ContainerLibrary;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Routed.Items;
 using Routed.Layer;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Terraria;
+using Terraria.Audio;
+using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
 namespace Routed.Modules
 {
-	public class ExtractorModule : BaseModule
+	public class ExtractorModule : BaseModule, IHasUI
 	{
 		public override int DropItem
 		{
@@ -35,6 +41,8 @@ namespace Routed.Modules
 
 		private int timer;
 
+		public List<int> FilteredItems = new List<int> { -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+
 		public override void Draw(SpriteBatch spriteBatch)
 		{
 			Vector2 position = Parent.Position.ToScreenCoordinates(false);
@@ -45,6 +53,14 @@ namespace Routed.Modules
 		{
 			ExtractionSpeed = tag.GetInt("ExtractionSpeed");
 			ItemsPerExtraction = tag.GetInt("ItemsPerExtraction");
+			FilteredItems = tag.GetList<int>("Filter").ToList();
+		}
+
+		public override bool Interact()
+		{
+			if (Main.netMode != NetmodeID.Server) PanelUI.Instance.HandleUI(this);
+
+			return true;
 		}
 
 		public override void OnPlace(BaseModuleItem item)
@@ -59,7 +75,8 @@ namespace Routed.Modules
 		public override TagCompound Save() => new TagCompound
 		{
 			["ExtractionSpeed"] = ExtractionSpeed,
-			["ItemsPerExtraction"] = ItemsPerExtraction
+			["ItemsPerExtraction"] = ItemsPerExtraction,
+			["Filter"] = FilteredItems
 		};
 
 		protected override void Update()
@@ -74,6 +91,8 @@ namespace Routed.Modules
 			{
 				if (handler.Items[i] == null || handler.Items[i].IsAir) continue;
 
+				if (FilteredItems.Any(filter => filter != -1) && !FilteredItems.Contains(handler.Items[i].type)) continue;
+
 				Item item = handler.ExtractItem(i, ItemsPerExtraction);
 
 				if (Network.PushItem(item, Parent)) break;
@@ -81,5 +100,10 @@ namespace Routed.Modules
 				handler.InsertItem(ref item);
 			}
 		}
+
+		public Guid UUID { get; set; }
+		public BaseUIPanel UI { get; set; }
+		public LegacySoundStyle CloseSound { get; }
+		public LegacySoundStyle OpenSound { get; }
 	}
 }
