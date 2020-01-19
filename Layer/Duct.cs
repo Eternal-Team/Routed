@@ -15,6 +15,13 @@ namespace Routed.Layer
 {
 	public class Duct : ModLayerElement<Duct>
 	{
+		public enum DuctTier
+		{
+			Basic,
+			Advanced,
+			Elite
+		}
+
 		public override string Texture => "";
 
 		public override int DropItem => ModContent.ItemType<BasicDuct>();
@@ -22,10 +29,31 @@ namespace Routed.Layer
 		public BaseModule Module;
 		public RoutedNetwork Network;
 
+		public DuctTier Tier = DuctTier.Basic;
+
+		public int Speed;
+
+		// todo: consider making a sprite atlas
 		public override void Draw(SpriteBatch spriteBatch)
 		{
 			Vector2 position = Position.ToScreenCoordinates(false) + new Vector2(8);
-			Color color = Lighting.GetColor(Position.X, Position.Y);
+			Color color;
+
+			switch (Tier)
+			{
+				case DuctTier.Basic:
+					color = Color.LimeGreen;
+					break;
+				case DuctTier.Advanced:
+					color = Color.Red;
+					break;
+				case DuctTier.Elite:
+					color = Color.LightBlue;
+					break;
+				default:
+					color = Lighting.GetColor(Position.X, Position.Y);
+					break;
+			}
 
 			spriteBatch.Draw(Main.magicPixel, new Rectangle((int)position.X - 8, (int)position.Y - 8, 16, 16), new Color(40, 40, 40));
 
@@ -93,6 +121,20 @@ namespace Routed.Layer
 		{
 			try
 			{
+				Tier = (DuctTier)tag.GetInt("Tier");
+				switch (Tier)
+				{
+					case DuctTier.Basic:
+						Speed = 20;
+						break;
+					case DuctTier.Advanced:
+						Speed = 12;
+						break;
+					case DuctTier.Elite:
+						Speed = 5;
+						break;
+				}
+
 				if (tag.ContainsKey("Module"))
 				{
 					TagCompound module = tag.GetCompound("Module");
@@ -106,8 +148,25 @@ namespace Routed.Layer
 			}
 		}
 
-		public override void OnPlace()
+		public override void OnPlace(BaseLayerItem item)
 		{
+			if (item is BaseDuct d)
+			{
+				Tier = d.Tier;
+				switch (Tier)
+				{
+					case DuctTier.Basic:
+						Speed = 20;
+						break;
+					case DuctTier.Advanced:
+						Speed = 12;
+						break;
+					case DuctTier.Elite:
+						Speed = 5;
+						break;
+				}
+			}
+
 			List<RoutedNetwork> networks = GetNeighbors().Select(duct => duct.Network).Distinct().ToList();
 			RoutedNetwork network = new RoutedNetwork
 			{
@@ -196,7 +255,7 @@ namespace Routed.Layer
 
 		public override TagCompound Save()
 		{
-			TagCompound tag = new TagCompound();
+			TagCompound tag = new TagCompound { ["Tier"] = (int)Tier };
 			if (Module != null)
 			{
 				tag["Module"] = new TagCompound

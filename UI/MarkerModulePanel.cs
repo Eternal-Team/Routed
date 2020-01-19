@@ -20,7 +20,7 @@ namespace Routed.UI
 			UITextButton buttonClose = new UITextButton("X")
 			{
 				Size = new Vector2(20),
-				X = { Pixels = -20, Percent = 100 },
+				X = { Percent = 100 },
 				Padding = Padding.Zero,
 				RenderPanel = false
 			};

@@ -60,7 +60,7 @@ namespace Routed.Layer
 				element.UpdateFrame();
 				foreach (Duct neighbor in element.GetVisualNeighbors()) neighbor.UpdateFrame();
 
-				element.OnPlace();
+				element.OnPlace(item);
 				return true;
 			}
 

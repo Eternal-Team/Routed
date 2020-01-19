@@ -12,7 +12,6 @@ namespace Routed.Layer
 {
 	public class NetworkItem
 	{
-		public const int speed = 20;
 		public Point16 CurrentPosition;
 		public Duct destination;
 		public Item item;
@@ -21,7 +20,8 @@ namespace Routed.Layer
 
 		public Stack<Point16> path;
 		public Point16 PreviousPosition;
-		public int timer = speed;
+		public int timer;
+		public int speed;
 
 		public NetworkItem(Item item, Duct origin, Duct destination)
 		{
@@ -52,6 +52,8 @@ namespace Routed.Layer
 
 		public void Update()
 		{
+			speed = Routed.RoutedLayer[CurrentPosition].Speed;
+
 			if (++timer >= speed)
 			{
 				PreviousPosition = CurrentPosition;
