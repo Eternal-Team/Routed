@@ -99,7 +99,7 @@ namespace Routed.Modules.FilterModes
 
 	public class FilteredItemsMode : FilterMode
 	{
-		public List<int> whitelist = new List<int> { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		public List<int> whitelist = Enumerable.Repeat(-1, 9).ToList();
 
 		public override bool Check(Item item) => whitelist.Contains(item.type);
 
