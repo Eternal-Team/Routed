@@ -220,7 +220,7 @@ namespace Routed.Layer
 				}
 			}
 
-			Main.NewText("Tracking " + HandlerCache.Count + " handlers and " + HandlerCache.Sum(pair => pair.Value.Count) + " modules");
+			//Main.NewText("Tracking " + HandlerCache.Count + " handlers and " + HandlerCache.Sum(pair => pair.Value.Count) + " modules");
 
 			for (int i = 0; i < NetworkItems.Count; i++)
 			{
@@ -234,7 +234,8 @@ namespace Routed.Layer
 		{
 			foreach (BaseElement element in PanelUI.Instance.Children)
 			{
-				if (element is RequesterModulePanel panel) panel.UpdateGrid();
+				if (element is RequesterModulePanel module) module.UpdateGrid();
+				else if (element is RemoteRequesterPanel item) item.UpdateGrid();
 			}
 		}
 	}

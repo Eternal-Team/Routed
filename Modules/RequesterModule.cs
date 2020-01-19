@@ -17,7 +17,6 @@ namespace Routed.Modules
 {
 	public class RequesterModule : BaseModule, IHasUI, IItemHandler
 	{
-		private const int maxTimer = 30;
 
 		public override int DropItem => ModContent.ItemType<Items.RequesterModule>();
 
@@ -27,10 +26,11 @@ namespace Routed.Modules
 		public LegacySoundStyle OpenSound => SoundID.Item1;
 
 		public ItemHandler Handler { get; }
-
-		public Queue<(int type, int count)> RequestQueue = new Queue<(int type, int count)>();
 		public ItemHandler ReturnHandler;
 
+		public Queue<(int type, int count)> RequestQueue = new Queue<(int type, int count)>();
+
+		private const int maxTimer = 30;
 		private int timer;
 
 		public RequesterModule()

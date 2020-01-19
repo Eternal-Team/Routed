@@ -31,6 +31,7 @@ namespace Routed.Layer
 
 			path = Pathfinding.FindPath(origin, destination);
 			CurrentPosition = PreviousPosition = path.Pop();
+			timer=speed = Routed.RoutedLayer[CurrentPosition].Speed;
 		}
 
 		public NetworkItem(TagCompound tag)
