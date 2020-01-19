@@ -94,7 +94,7 @@ namespace Routed.UI
 			{
 				Width = { Percent = 100, Pixels = -26 },
 				Height = { Percent = 100 },
-				ListPadding = SlotMargin
+				ItemMargin = SlotMargin
 			};
 			gridSlots.SearchSelector += item =>
 			{
@@ -158,7 +158,7 @@ namespace Routed.UI
 				{
 					Width = { Pixels = (SlotSize + SlotMargin) * 10 },
 					Height = { Percent = 100 },
-					ListPadding = SlotMargin
+					ItemMargin = SlotMargin
 				};
 				panel.Add(gridOutout);
 
@@ -191,7 +191,7 @@ namespace Routed.UI
 					Width = { Pixels = (SlotSize + SlotMargin) * 3 - SlotMargin },
 					Height = { Percent = 100 },
 					X = { Percent = 100 },
-					ListPadding = SlotMargin
+					ItemMargin = SlotMargin
 				};
 				panel.Add(gridInput);
 

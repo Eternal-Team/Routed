@@ -66,12 +66,16 @@ namespace Routed.Layer
 				ItemHandler handler = module.GetHandler();
 				if (handler == null) continue;
 
+				int available = module.GetAvailableItems(type);
+				if (available <= 0) continue;
+
 				for (int i = 0; i < handler.Slots; i++)
 				{
 					Item item = handler.Items[i];
 					if (item.IsAir || item.type != type) continue;
 
-					int extractedAmount = Math.Min(count, item.stack);
+					int extractedAmount = Utility.Min(count, item.stack, available);
+					if (extractedAmount <= 0) continue;
 
 					NetworkItem networkItem = new NetworkItem(handler.ExtractItem(i, extractedAmount), module.Parent, destination);
 					NetworkItems.Add(networkItem);
@@ -82,6 +86,7 @@ namespace Routed.Layer
 					UpdateUIs();
 
 					count -= extractedAmount;
+					available -= extractedAmount;
 					if (count <= 0) return true;
 				}
 			}

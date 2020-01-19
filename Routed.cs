@@ -68,6 +68,7 @@ namespace Routed
 
 	internal class RLayer : BaseLibrary.Layer
 	{
+		// bug: click and up still get passed
 		public override void OnMouseDown(MouseButtonEventArgs args)
 		{
 			if (args.Button == MouseButton.Right && Routed.RoutedLayer.Interact()) args.Handled = true;

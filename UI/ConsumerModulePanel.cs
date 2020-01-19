@@ -1,4 +1,6 @@
 ﻿using BaseLibrary;
+using BaseLibrary.Input;
+using BaseLibrary.Input.Mouse;
 using BaseLibrary.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -16,8 +18,8 @@ namespace Routed.UI
 	{
 		public ConsumerModulePanel(ConsumerModule module) : base(module)
 		{
-			Width.Percent = Height.Percent = 25;
-
+			Width.Pixels = 16 + (SlotSize + SlotMargin) * 9 - SlotMargin;
+			Height.Pixels = 44 + SlotSize;
 
 			UIText textLabel = new UIText("Consumer Module")
 			{
@@ -31,25 +33,24 @@ namespace Routed.UI
 			UITextButton buttonClose = new UITextButton("X")
 			{
 				Size = new Vector2(20),
-				X = { Pixels = -20, Percent = 100 },
+				X = { Percent = 100 },
 				Padding = Padding.Zero,
 				RenderPanel = false
 			};
 			buttonClose.OnClick += args => PanelUI.Instance.CloseUI(Container);
 			Add(buttonClose);
 
-			UIGrid<UIConsumerSlot> gridSlots = new UIGrid<UIConsumerSlot>(3)
+			UIGrid<UIConsumerSlot> gridSlots = new UIGrid<UIConsumerSlot>(9)
 			{
 				Y = { Pixels = 28 },
-				Width = { Pixels = 136 },
-				Height = { Pixels = -44, Percent = 100 },
-				X = { Percent = 50 }
+				Width = { Percent = 100 },
+				Height = { Pixels = -28, Percent = 100 }
 			};
 			Add(gridSlots);
 
-			for (int i = 0; i < 9; i++)
+			for (int i = 0; i < module.Items.Count; i++)
 			{
-				UIConsumerSlot slot = new UIConsumerSlot();
+				UIConsumerSlot slot = new UIConsumerSlot(module, i);
 				gridSlots.Add(slot);
 			}
 		}
@@ -57,18 +58,47 @@ namespace Routed.UI
 
 	public class UIConsumerSlot : BaseElement
 	{
-		public Item PreviewItem;
+		private Item PreviewItem;
+		private ConsumerModule module;
+		private int index;
 
-		public UIConsumerSlot()
+		public UIConsumerSlot(ConsumerModule module, int index)
 		{
-			Width.Pixels = Height.Pixels = 40;
+			this.module = module;
+			this.index = index;
+
+			PreviewItem = new Item();
+			if (module.Items[index] > 0) PreviewItem.SetDefaults(module.Items[index]);
+
+			Width.Pixels = Height.Pixels = SlotSize;
+		}
+
+		protected override void MouseClick(MouseButtonEventArgs args)
+		{
+			if (args.Button == MouseButton.Left)
+			{
+				if (!Main.mouseItem.IsAir)
+				{
+					PreviewItem.SetDefaults(Main.mouseItem.type);
+					module.Items[index] = Main.mouseItem.type;
+				}
+
+				args.Handled = true;
+			}
+			else if (args.Button == MouseButton.Right)
+			{
+				PreviewItem.TurnToAir();
+				module.Items[index] = -1;
+
+				args.Handled = true;
+			}
 		}
 
 		protected override void Draw(SpriteBatch spriteBatch)
 		{
 			spriteBatch.DrawSlot(Dimensions, Color.White, Main.inventoryBackTexture);
 
-			float scale = Math.Min(InnerDimensions.Width / Main.inventoryBackTexture.Width, InnerDimensions.Height / Main.inventoryBackTexture.Height);
+			float scale = Math.Min(InnerDimensions.Width / (float)Main.inventoryBackTexture.Width, InnerDimensions.Height / (float)Main.inventoryBackTexture.Height);
 
 			if (PreviewItem != null && !PreviewItem.IsAir) DrawItem(spriteBatch, PreviewItem, scale);
 		}

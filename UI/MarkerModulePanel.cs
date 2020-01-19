@@ -39,26 +39,26 @@ namespace Routed.UI
 			{
 				case FilteredItemsMode mode:
 				{
-					UIGrid<UIConsumerSlot> grid = new UIGrid<UIConsumerSlot>(9)
-					{
-						Width = { Percent = 100 },
-						Height = { Pixels = -28, Percent = 100 },
-						Y = { Pixels = 28 }
-					};
-					Add(grid);
+					//UIGrid<UIConsumerSlot> grid = new UIGrid<UIConsumerSlot>(9)
+					//{
+					//	Width = { Percent = 100 },
+					//	Height = { Pixels = -28, Percent = 100 },
+					//	Y = { Pixels = 28 }
+					//};
+					//Add(grid);
 
-					for (int i = 0; i < mode.whitelist.Count; i++)
-					{
-						UIConsumerSlot slot = new UIConsumerSlot { PreviewItem = new Item() };
-						var i1 = i;
-						slot.OnClick += args =>
-						{
-							mode.whitelist[i1] = Main.mouseItem.type;
-							slot.PreviewItem.SetDefaults(Main.mouseItem.type);
-						};
-						if (mode.whitelist[i] > 0) slot.PreviewItem.SetDefaults(mode.whitelist[i]);
-						grid.Add(slot);
-					}
+					//for (int i = 0; i < mode.whitelist.Count; i++)
+					//{
+					//	UIConsumerSlot slot = new UIConsumerSlot { PreviewItem = new Item() };
+					//	var i1 = i;
+					//	slot.OnClick += args =>
+					//	{
+					//		mode.whitelist[i1] = Main.mouseItem.type;
+					//		slot.PreviewItem.SetDefaults(Main.mouseItem.type);
+					//	};
+					//	if (mode.whitelist[i] > 0) slot.PreviewItem.SetDefaults(mode.whitelist[i]);
+					//	grid.Add(slot);
+					//}
 
 					break;
 				}

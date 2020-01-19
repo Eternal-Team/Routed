@@ -148,7 +148,7 @@ namespace Routed.Items
 				Width = { Percent = 100 },
 				Height = { Pixels = -28, Percent = 100 },
 				Y = { Pixels = 28 },
-				ListPadding = 4
+				ItemMargin = 4
 			};
 			Add(gridItems);
 
