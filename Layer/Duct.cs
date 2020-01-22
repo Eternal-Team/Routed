@@ -25,7 +25,7 @@ namespace Routed.Layer
 		public override string Texture => "";
 
 		public override int DropItem => ModContent.ItemType<BasicDuct>();
-		private ushort frame;
+		private byte frame;
 		public BaseModule Module;
 		public RoutedNetwork Network;
 
@@ -33,10 +33,9 @@ namespace Routed.Layer
 
 		public int Speed;
 
-		// todo: consider making a sprite atlas
 		public override void Draw(SpriteBatch spriteBatch)
 		{
-			Vector2 position = Position.ToScreenCoordinates(false) + new Vector2(8);
+			Vector2 position = Position.ToScreenCoordinates(false) - new Vector2(6);
 			Color color;
 
 			switch (Tier)
@@ -55,38 +54,7 @@ namespace Routed.Layer
 					break;
 			}
 
-			spriteBatch.Draw(Main.magicPixel, new Rectangle((int)position.X - 8, (int)position.Y - 8, 16, 16), new Color(40, 40, 40));
-
-			if (frame == 0)
-			{
-				for (int i = 0; i < 4; i++) spriteBatch.Draw(textureNormal, position, null, color, MathHelper.PiOver2 * i, Origin, 1f, SpriteEffects.None, 0f);
-			}
-			else if (frame == 511)
-			{
-				Vector2 origin = Origin + new Vector2(1);
-				for (int i = 0; i < 4; i++) spriteBatch.Draw(textureAll, position, null, color, MathHelper.PiOver2 * i, origin, 1f, SpriteEffects.None, 0f);
-			}
-			else
-			{
-				for (int i = 0; i < 4; i++)
-				{
-					float angle = MathHelper.PiOver2 * i;
-
-					ushort pow = (ushort)Math.Pow(4, i);
-					bool bit1 = (frame & (1 * pow)) == 0;
-					bool bit2 = (frame & (2 * pow)) == 0;
-					bool bit3 = (frame & (4 * pow)) == 0;
-
-					if (bit1 && bit2 && bit3) spriteBatch.Draw(textureNormal, position, null, color, angle, Origin, 1f, SpriteEffects.None, 0f);
-					else if (bit1 && !bit2 && bit3) spriteBatch.Draw(textureDiagonal, position, null, color, angle, Origin, 1f, SpriteEffects.None, 0f);
-					else if (!bit1 && bit2 && !bit3) spriteBatch.Draw(textureIntersection, position, null, color, angle, Origin + new Vector2(2), 1f, SpriteEffects.None, 0f);
-					else if (bit1 && bit2) spriteBatch.Draw(textureStraightV, position, null, color, angle, Origin, 1f, SpriteEffects.None, 0f);
-					else if (!bit1 && bit2) spriteBatch.Draw(textureStraightH, position, null, color, angle, Origin, 1f, SpriteEffects.None, 0f);
-					else if (!bit1 && !bit3) spriteBatch.Draw(textureAll, position, null, color, angle, Origin + new Vector2(1), 1f, SpriteEffects.None, 0f);
-				}
-			}
-
-			if (isNode) spriteBatch.Draw(Main.magicPixel, new Rectangle((int)(position.X - 4), (int)(position.Y - 4), 8, 8), Color.Red);
+			spriteBatch.Draw(texture, position, new Rectangle(frame % 16 * 30, frame / 16 * 30, 28, 28), color, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 0f);
 
 			Module?.Draw(spriteBatch);
 		}
@@ -115,7 +83,333 @@ namespace Routed.Layer
 			if (Layer.ContainsKey(Position.X + 1, Position.Y - 1)) yield return Layer[Position.X + 1, Position.Y - 1];
 		}
 
-		public override bool Interact() => Module?.Interact() ?? false;
+		public override bool Interact()
+		{
+			/* SpriteBatch spriteBatch = Main.spriteBatch;
+			Color color = Color.White;
+
+			RenderTarget2D target = new RenderTarget2D(Main.graphics.GraphicsDevice, 28, 28, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+
+			Item i = new Item();
+			i.SetDefaults(ModContent.ItemType<BasicDuct>());
+			BaseLayerItem layerItem = i.modItem as BaseLayerItem;
+
+			for (ushort f = 0; f < 256; f++)
+			{
+				Main.graphics.GraphicsDevice.SetRenderTarget(target);
+				Main.graphics.GraphicsDevice.Clear(Color.Transparent);
+
+				Debug.WriteLine(f);
+
+				Main.spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
+
+				bool left = (f & 1) != 0;
+				bool topLeft = (f & 2) != 0;
+				bool top = (f & 4) != 0;
+				bool topRight = (f & 8) != 0;
+				bool right = (f & 16) != 0;
+				bool bottomRight = (f & 32) != 0;
+				bool bottom = (f & 64) != 0;
+				bool bottomLeft = (f & 128) != 0;
+
+				Layer.data.Clear();
+
+				Duct element = new Duct
+				{
+					Position = new Point16(20, 20),
+					Frame = Point16.Zero,
+					Layer = Layer
+				};
+				Layer.data.Add(new Point16(20, 20), element);
+				element.OnPlace(layerItem);
+
+				element.UpdateFrame();
+				foreach (Duct neighbor in element.GetNeighbors())
+					neighbor.UpdateFrame();
+
+				if (left)
+				{
+					element = new Duct
+					{
+						Position = new Point16(20 - 1, 20),
+						Frame = Point16.Zero,
+						Layer = Layer
+					};
+					Layer.data.Add(new Point16(20 - 1, 20), element);
+					element.OnPlace(layerItem);
+
+					element.UpdateFrame();
+					foreach (Duct neighbor in element.GetNeighbors())
+						neighbor.UpdateFrame();
+				}
+
+				if (topLeft)
+				{
+					element = new Duct
+					{
+						Position = new Point16(20 - 1, 20 - 1),
+						Frame = Point16.Zero,
+						Layer = Layer
+					};
+					Layer.data.Add(new Point16(20 - 1, 20 - 1), element);
+					element.OnPlace(layerItem);
+
+					element.UpdateFrame();
+					foreach (Duct neighbor in element.GetNeighbors())
+						neighbor.UpdateFrame();
+				}
+
+				if (top)
+				{
+					element = new Duct
+					{
+						Position = new Point16(20, 20 - 1),
+						Frame = Point16.Zero,
+						Layer = Layer
+					};
+					Layer.data.Add(new Point16(20, 20 - 1), element);
+					element.OnPlace(layerItem);
+
+					element.UpdateFrame();
+					foreach (Duct neighbor in element.GetNeighbors())
+						neighbor.UpdateFrame();
+				}
+
+				if (topRight)
+				{
+					element = new Duct
+					{
+						Position = new Point16(20 + 1, 20 - 1),
+						Frame = Point16.Zero,
+						Layer = Layer
+					};
+					Layer.data.Add(new Point16(20 + 1, 20 - 1), element);
+					element.OnPlace(layerItem);
+
+					element.UpdateFrame();
+					foreach (Duct neighbor in element.GetNeighbors())
+						neighbor.UpdateFrame();
+				}
+
+				if (right)
+				{
+					element = new Duct
+					{
+						Position = new Point16(20 + 1, 20),
+						Frame = Point16.Zero,
+						Layer = Layer
+					};
+					Layer.data.Add(new Point16(20 + 1, 20), element);
+					element.OnPlace(layerItem);
+
+					element.UpdateFrame();
+					foreach (Duct neighbor in element.GetNeighbors())
+						neighbor.UpdateFrame();
+				}
+
+				if (bottomRight)
+				{
+					element = new Duct
+					{
+						Position = new Point16(20 + 1, 20 + 1),
+						Frame = Point16.Zero,
+						Layer = Layer
+					};
+					Layer.data.Add(new Point16(20 + 1, 20 + 1), element);
+					element.OnPlace(layerItem);
+
+					element.UpdateFrame();
+					foreach (Duct neighbor in element.GetNeighbors())
+						neighbor.UpdateFrame();
+				}
+
+				if (bottom)
+				{
+					element = new Duct
+					{
+						Position = new Point16(20, 20 + 1),
+						Frame = Point16.Zero,
+						Layer = Layer
+					};
+					Layer.data.Add(new Point16(20, 20 + 1), element);
+					element.OnPlace(layerItem);
+
+					element.UpdateFrame();
+					foreach (Duct neighbor in element.GetNeighbors())
+						neighbor.UpdateFrame();
+				}
+
+				if (bottomLeft)
+				{
+					element = new Duct
+					{
+						Position = new Point16(20 - 1, 20 + 1),
+						Frame = Point16.Zero,
+						Layer = Layer
+					};
+					Layer.data.Add(new Point16(20 - 1, 20 + 1), element);
+					element.OnPlace(layerItem);
+
+					element.UpdateFrame();
+					foreach (Duct neighbor in element.GetNeighbors())
+						neighbor.UpdateFrame();
+				}
+
+				foreach (var value in Layer.data.Values)
+				{
+					value.UpdateFrame();
+				}
+
+				var prev = f;
+				foreach (var duct in Layer.data)
+				{
+					Vector2 position = new Vector2(14, 14) + new Vector2((duct.Value.Position.X - 20) * 16, (duct.Value.Position.Y - 20) * 16);
+
+					f = duct.Value.frame;
+					left = (f & 1) != 0;
+					topLeft = (f & 2) != 0;
+					top = (f & 4) != 0;
+					topRight = (f & 8) != 0;
+					right = (f & 16) != 0;
+					bottomRight = (f & 32) != 0;
+					bottom = (f & 64) != 0;
+					bottomLeft = (f & 128) != 0;
+
+					spriteBatch.Draw(Main.magicPixel, new Rectangle((int)(position.X - 8), (int)(position.Y - 8), 16, 16), null, Color.Black, 0f, Vector2.Zero, SpriteEffects.None, 1f);
+
+					#region straight
+					if (left)
+					{
+						if (!top)
+							spriteBatch.Draw(textureStraightH, position, null, color, 0, Origin, 1f, SpriteEffects.None, 0.75f);
+						if (!bottom)
+							spriteBatch.Draw(textureStraightH, position + new Vector2(0, 22), null, color, 0, Origin, 1f, SpriteEffects.None, 0.75f);
+					}
+
+					if (right)
+					{
+						if (!top)
+							spriteBatch.Draw(textureStraightH, position + new Vector2(8, 0), null, color, 0, Origin, 1f, SpriteEffects.None, 0.75f);
+						if (!bottom)
+							spriteBatch.Draw(textureStraightH, position + new Vector2(8, 22), null, color, 0, Origin, 1f, SpriteEffects.None, 0.75f);
+					}
+
+					if (top)
+					{
+						if (!left)
+							spriteBatch.Draw(textureStraightV, position, null, color, 0, Origin, 1f, SpriteEffects.None, 0.75f);
+						if (!right)
+							spriteBatch.Draw(textureStraightV, position + new Vector2(22, 0), null, color, 0, Origin, 1f, SpriteEffects.None, 0.75f);
+					}
+
+					if (bottom)
+					{
+						if (!left)
+							spriteBatch.Draw(textureStraightV, position + new Vector2(0, 8), null, color, 0, Origin, 1f, SpriteEffects.None, 0.75f);
+						if (!right)
+							spriteBatch.Draw(textureStraightV, position + new Vector2(22, 8), null, color, 0, Origin, 1f, SpriteEffects.None, 0.75f);
+					}
+					#endregion
+
+					#region diagonal
+					if (!left && topLeft && !top)
+					{
+						spriteBatch.Draw(textureDiagonal, position, null, color, 0, Origin, 1f, SpriteEffects.None, 0.5f);
+					}
+
+					if (!top && topRight && !right)
+					{
+						spriteBatch.Draw(textureDiagonal, position, null, color, MathHelper.PiOver2, Origin, 1f, SpriteEffects.None, 0.5f);
+					}
+
+					if (!right && bottomRight && !bottom)
+					{
+						spriteBatch.Draw(textureDiagonal, position, null, color, MathHelper.PiOver2 * 2, Origin, 1f, SpriteEffects.None, 0.5f);
+					}
+
+					if (!bottom && bottomLeft && !left)
+					{
+						spriteBatch.Draw(textureDiagonal, position, null, color, MathHelper.PiOver2 * 3, Origin, 1f, SpriteEffects.None, 0.5f);
+					}
+					#endregion
+
+					#region corner
+					if (!left && !topLeft && !top)
+					{
+						spriteBatch.Draw(textureNormal, position, null, color, 0, Origin, 1f, SpriteEffects.None, 0.5f);
+					}
+
+					if (!top && !topRight && !right)
+					{
+						spriteBatch.Draw(textureNormal, position, null, color, MathHelper.PiOver2, Origin, 1f, SpriteEffects.None, 0.5f);
+					}
+
+					if (!right && !bottomRight && !bottom)
+					{
+						spriteBatch.Draw(textureNormal, position, null, color, MathHelper.PiOver2 * 2, Origin, 1f, SpriteEffects.None, 0.5f);
+					}
+
+					if (!bottom && !bottomLeft && !left)
+					{
+						spriteBatch.Draw(textureNormal, position, null, color, MathHelper.PiOver2 * 3, Origin, 1f, SpriteEffects.None, 0.5f);
+					}
+					#endregion
+
+					#region intersection
+					if (left && !topLeft && top)
+					{
+						spriteBatch.Draw(textureIntersection, position, null, color, 0, Origin + new Vector2(2), 1f, SpriteEffects.None, 0.5f);
+					}
+
+					if (top && !topRight && right)
+					{
+						spriteBatch.Draw(textureIntersection, position, null, color, MathHelper.PiOver2, Origin + new Vector2(2), 1f, SpriteEffects.None, 0.5f);
+					}
+
+					if (right && !bottomRight && bottom)
+					{
+						spriteBatch.Draw(textureIntersection, position, null, color, MathHelper.PiOver2 * 2, Origin + new Vector2(2), 1f, SpriteEffects.None, 0.5f);
+					}
+
+					if (bottom && !bottomLeft && left)
+					{
+						spriteBatch.Draw(textureIntersection, position, null, color, MathHelper.PiOver2 * 3, Origin + new Vector2(2), 1f, SpriteEffects.None, 0.5f);
+					}
+					#endregion
+
+					if (left && topLeft && top)
+					{
+						spriteBatch.Draw(textureAll, position, null, color, 0f, Origin, 1f, SpriteEffects.None, 0.5f);
+					}
+
+					if (top && topRight && right)
+					{
+						spriteBatch.Draw(textureAll, position + new Vector2(14, 0), null, color, 0f, Origin, 1f, SpriteEffects.None, 0.5f);
+					}
+
+					if (right && bottomRight && bottom)
+					{
+						spriteBatch.Draw(textureAll, position + new Vector2(14, 14), null, color, 0f, Origin, 1f, SpriteEffects.None, 0.5f);
+					}
+
+					if (bottom && bottomLeft && left)
+					{
+						spriteBatch.Draw(textureAll, position + new Vector2(0, 14), null, color, 0f, Origin, 1f, SpriteEffects.None, 0.5f);
+					}
+				}
+
+				f = prev;
+				Main.spriteBatch.End();
+
+				Main.graphics.GraphicsDevice.SetRenderTarget(null);
+				using (FileStream stream = new FileStream($@"G:\C#\Terraria\Mods\Routed\Textures\Duct_Gen\Frame_{f}.png", FileMode.Create))
+				{
+					target.SaveAsPng(stream, 28, 28);
+				}
+			}*/
+
+			return Module?.Interact() ?? false;
+		}
 
 		public override void Load(TagCompound tag)
 		{
@@ -285,29 +579,53 @@ namespace Routed.Layer
 			if (Layer.ContainsKey(Position.X + 1, Position.Y + 1)) frame |= 32;
 			if (Layer.ContainsKey(Position.X, Position.Y + 1)) frame |= 64;
 			if (Layer.ContainsKey(Position.X - 1, Position.Y + 1)) frame |= 128;
-			if (Layer.ContainsKey(Position.X - 1, Position.Y)) frame |= 256;
 		}
 
 		#region Static
-		private static Vector2 Origin = new Vector2(14);
+		//private static Vector2 Origin = new Vector2(14);
 
-		private static Texture2D textureNormal;
-		private static Texture2D textureDiagonal;
-		private static Texture2D textureAll;
-		private static Texture2D textureIntersection;
-		private static Texture2D textureStraightV;
-		private static Texture2D textureStraightH;
+		//private static Texture2D textureNormal;
+		//private static Texture2D textureDiagonal;
+		//private static Texture2D textureAll;
+		//private static Texture2D textureIntersection;
+		//private static Texture2D textureStraightV;
+		//private static Texture2D textureStraightH;
 
-		private const string TextureLocation = "Routed/Textures/Duct/";
+		//private const string TextureLocation = "Routed/Textures/Duct/";
+
+		private static Texture2D texture;
 
 		internal static void Initialize()
 		{
-			textureNormal = ModContent.GetTexture(TextureLocation + "Normal");
-			textureDiagonal = ModContent.GetTexture(TextureLocation + "Diagonal");
-			textureAll = ModContent.GetTexture(TextureLocation + "All");
-			textureIntersection = ModContent.GetTexture(TextureLocation + "Intersection");
-			textureStraightV = ModContent.GetTexture(TextureLocation + "StraightV");
-			textureStraightH = ModContent.GetTexture(TextureLocation + "StraightH");
+			texture = ModContent.GetTexture("Routed/Textures/Duct/Atlas");
+
+			//Bitmap bmp = new Bitmap(30 * 16, 30 * 16);
+
+			//using (Graphics g = Graphics.FromImage(bmp))
+			//{
+			//	g.Clear(System.Drawing.Color.Transparent);
+
+			//	for (int i = 0; i < 256; i++)
+			//	{
+			//		Image img = Image.FromFile($@"G:\C#\Terraria\Mods\Routed\Textures\Duct_Gen\Frame_{i}.png");
+
+			//		int indexX = i % 16;
+			//		int indexY = i / 16;
+
+			//		g.FillRectangle(Brushes.DeepPink, indexX * 30 + 28, indexY * 30, 2, 30);
+			//		g.FillRectangle(Brushes.DeepPink, indexX * 30, indexY * 30 + 28, 30, 2);
+			//		g.DrawImage(img, indexX * 30, indexY * 30, 28, 28);
+			//	}
+			//}
+
+			//bmp.Save(@"G:\C#\Terraria\Mods\Routed\Textures\Duct\Atlas.png", ImageFormat.Png);
+
+			//textureNormal = ModContent.GetTexture(TextureLocation + "Normal");
+			//textureDiagonal = ModContent.GetTexture(TextureLocation + "Diagonal");
+			//textureAll = ModContent.GetTexture(TextureLocation + "All");
+			//textureIntersection = ModContent.GetTexture(TextureLocation + "Intersection");
+			//textureStraightV = ModContent.GetTexture(TextureLocation + "StraightV");
+			//textureStraightH = ModContent.GetTexture(TextureLocation + "StraightH");
 		}
 		#endregion
 	}

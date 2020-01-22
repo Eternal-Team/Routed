@@ -1,4 +1,5 @@
-﻿using LayerLibrary;
+﻿using BaseLibrary;
+using LayerLibrary;
 using Microsoft.Xna.Framework.Graphics;
 using Routed.Items;
 using System.Collections.Generic;
@@ -15,9 +16,15 @@ namespace Routed.Layer
 
 		public override void Draw(SpriteBatch spriteBatch)
 		{
+			SpriteBatchState state = Utility.End(spriteBatch);
+			Main.spriteBatch.Begin(SpriteSortMode.Texture, BlendState.AlphaBlend);
+
 			base.Draw(spriteBatch);
 
 			foreach (RoutedNetwork network in RoutedNetwork.Networks) network.Draw(spriteBatch);
+
+			Main.spriteBatch.End();
+			Main.spriteBatch.Begin(state);
 		}
 
 		public override bool Interact()

@@ -34,7 +34,7 @@ namespace Routed.Modules
 		public override void Draw(SpriteBatch spriteBatch)
 		{
 			Vector2 position = Parent.Position.ToScreenCoordinates(false);
-			spriteBatch.Draw(ModContent.GetTexture("Routed/Textures/Modules/MarkerModule"), position, Color.White);
+			spriteBatch.Draw(ModContent.GetTexture("Routed/Textures/Modules/MarkerModule"), position,null, Color.White,0f, Vector2.Zero,Vector2.One,SpriteEffects.None,0f);
 		}
 
 		public override bool IsItemValid(Item item) => Mode.Check(item);
