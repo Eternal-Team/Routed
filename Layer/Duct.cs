@@ -24,8 +24,26 @@ namespace Routed.Layer
 
 		public override string Texture => "";
 
-		public override int DropItem => ModContent.ItemType<BasicDuct>();
+		public override int DropItem
+		{
+			get
+			{
+				switch (Tier)
+				{
+					case DuctTier.Basic:
+						return ModContent.ItemType<BasicDuct>();
+					case DuctTier.Advanced:
+						return ModContent.ItemType<AdvancedDuct>();
+					case DuctTier.Elite:
+						return ModContent.ItemType<EliteDuct>();
+				}
+
+				return 0;
+			}
+		}
+
 		private byte frame;
+		private bool isNode;
 		public BaseModule Module;
 		public RoutedNetwork Network;
 
@@ -47,16 +65,38 @@ namespace Routed.Layer
 					color = Color.Red;
 					break;
 				case DuctTier.Elite:
-					color = Color.LightBlue;
+					color = Color.Blue;
 					break;
 				default:
 					color = Lighting.GetColor(Position.X, Position.Y);
 					break;
 			}
 
-			spriteBatch.Draw(texture, position, new Rectangle(frame % 16 * 30, frame / 16 * 30, 28, 28), color, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 0f);
+			spriteBatch.Draw(texture, position, new Rectangle(frame % 16 * 30, frame / 16 * 30, 28, 28), color, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 1f);
+		}
 
+		public override void PostDraw(SpriteBatch spriteBatch)
+		{
 			Module?.Draw(spriteBatch);
+		}
+
+		public override void Update()
+		{
+			Module?.InternalUpdate();
+		}
+
+		public override void UpdateFrame()
+		{
+			frame = 0;
+
+			if (Layer.ContainsKey(Position.X - 1, Position.Y)) frame |= 1;
+			if (Layer.ContainsKey(Position.X - 1, Position.Y - 1)) frame |= 2;
+			if (Layer.ContainsKey(Position.X, Position.Y - 1)) frame |= 4;
+			if (Layer.ContainsKey(Position.X + 1, Position.Y - 1)) frame |= 8;
+			if (Layer.ContainsKey(Position.X + 1, Position.Y)) frame |= 16;
+			if (Layer.ContainsKey(Position.X + 1, Position.Y + 1)) frame |= 32;
+			if (Layer.ContainsKey(Position.X, Position.Y + 1)) frame |= 64;
+			if (Layer.ContainsKey(Position.X - 1, Position.Y + 1)) frame |= 128;
 		}
 
 		public void GetNeighborsRecursive(Duct duct, List<Point16> points)
@@ -83,9 +123,189 @@ namespace Routed.Layer
 			if (Layer.ContainsKey(Position.X + 1, Position.Y - 1)) yield return Layer[Position.X + 1, Position.Y - 1];
 		}
 
-		public override bool Interact()
+		public override bool Interact() => Module?.Interact() ?? false;
+
+		public override void OnPlace(BaseLayerItem item)
 		{
-			/* SpriteBatch spriteBatch = Main.spriteBatch;
+			if (item is BaseDuct d)
+			{
+				Tier = d.Tier;
+				switch (Tier)
+				{
+					case DuctTier.Basic:
+						Speed = 20;
+						break;
+					case DuctTier.Advanced:
+						Speed = 12;
+						break;
+					case DuctTier.Elite:
+						Speed = 5;
+						break;
+				}
+			}
+
+			List<RoutedNetwork> networks = GetNeighbors().Select(duct => duct.Network).Distinct().ToList();
+			RoutedNetwork network = new RoutedNetwork
+			{
+				Tiles = networks.SelectMany(routedNetwork => routedNetwork.Tiles).Concat(this).ToList(),
+				NetworkItems = networks.SelectMany(routedNetwork => routedNetwork.NetworkItems).ToList()
+			};
+
+			foreach (Duct duct in network.Tiles)
+			{
+				RoutedNetwork.Networks.Remove(duct.Network);
+				duct.Network = network;
+			}
+
+			foreach (Duct duct in network.Tiles)
+			{
+				if ((duct.frame & 1) != 0 && (duct.frame & 16) != 0 && (duct.frame & 4) == 0 && (duct.frame & 64) == 0) duct.isNode = false;
+				else if ((duct.frame & 1) == 0 && (duct.frame & 16) == 0 && (duct.frame & 4) != 0 && (duct.frame & 64) != 0) duct.isNode = false;
+				else duct.isNode = true;
+			}
+		}
+
+		public override void OnRemove()
+		{
+			if (Network.Tiles.Count == 1) RoutedNetwork.Networks.Remove(Network);
+			else if (GetNeighbors().Count() == 1)
+			{
+				Network.Tiles.Remove(this);
+
+				foreach (Duct duct in Network.Tiles)
+				{
+					if ((duct.frame & 1) != 0 && (duct.frame & 16) != 0 && (duct.frame & 4) == 0 && (duct.frame & 64) == 0) duct.isNode = false;
+					else if ((duct.frame & 1) == 0 && (duct.frame & 16) == 0 && (duct.frame & 4) != 0 && (duct.frame & 64) != 0) duct.isNode = false;
+					else duct.isNode = true;
+				}
+			}
+			else
+			{
+				List<Point16> visited = new List<Point16>();
+				List<List<Point16>> newNetworks = new List<List<Point16>>();
+
+				foreach (Duct duct in GetNeighbors())
+				{
+					if (visited.Contains(duct.Position)) continue;
+
+					visited.Add(duct.Position);
+
+					List<Point16> p = new List<Point16> { Position, duct.Position };
+					GetNeighborsRecursive(duct, p);
+					visited.AddRange(p);
+
+					p.Remove(Position);
+					newNetworks.Add(p);
+				}
+
+				if (newNetworks.Count <= 1)
+				{
+					Network.Tiles.Remove(this);
+					Network.CheckPaths();
+				}
+				else
+				{
+					for (int i = 0; i < newNetworks.Count; i++)
+					{
+						RoutedNetwork network = new RoutedNetwork
+						{
+							Tiles = newNetworks[i].Select(position => Layer[position]).ToList(),
+							NetworkItems = newNetworks[i].Select(position => Layer[position].Network).Distinct().SelectMany(routedNetwork => routedNetwork.NetworkItems).ToList()
+						};
+						network.CheckPaths();
+						foreach (Duct duct in network.Tiles)
+						{
+							duct.Network.NetworkItems.Clear();
+							RoutedNetwork.Networks.Remove(duct.Network);
+							duct.Network = network;
+
+							if ((duct.frame & 1) != 0 && (duct.frame & 16) != 0 && (duct.frame & 4) == 0 && (duct.frame & 64) == 0) duct.isNode = false;
+							else if ((duct.frame & 1) == 0 && (duct.frame & 16) == 0 && (duct.frame & 4) != 0 && (duct.frame & 64) != 0) duct.isNode = false;
+							else duct.isNode = true;
+						}
+					}
+				}
+			}
+		}
+
+		public override TagCompound Save()
+		{
+			TagCompound tag = new TagCompound { ["Tier"] = (int)Tier };
+			if (Module != null)
+			{
+				tag["Module"] = new TagCompound
+				{
+					["Type"] = Module.GetType().AssemblyQualifiedName,
+					["Data"] = Module.Save()
+				};
+			}
+
+			return tag;
+		}
+
+		public override void Load(TagCompound tag)
+		{
+			try
+			{
+				Tier = (DuctTier)tag.GetInt("Tier");
+				switch (Tier)
+				{
+					case DuctTier.Basic:
+						Speed = 20;
+						break;
+					case DuctTier.Advanced:
+						Speed = 12;
+						break;
+					case DuctTier.Elite:
+						Speed = 5;
+						break;
+				}
+
+				if (tag.ContainsKey("Module"))
+				{
+					TagCompound module = tag.GetCompound("Module");
+					Module = (BaseModule)Activator.CreateInstance(Type.GetType(module.GetString("Type")));
+					Module.Parent = this;
+					Module.Load(module.GetCompound("Data"));
+				}
+			}
+			catch
+			{
+			}
+		}
+
+		#region Static
+		private static Texture2D texture;
+
+		internal static void Initialize()
+		{
+			texture = ModContent.GetTexture("Routed/Textures/Duct/Atlas");
+		}
+		#endregion
+
+		#region Atlas gen
+		//Bitmap bmp = new Bitmap(30 * 16, 30 * 16);
+
+		//using (Graphics g = Graphics.FromImage(bmp))
+		//{
+		//	g.Clear(System.Drawing.Color.Transparent);
+
+		//	for (int i = 0; i < 256; i++)
+		//	{
+		//		Image img = Image.FromFile($@"G:\C#\Terraria\Mods\Routed\Textures\Duct_Gen\Frame_{i}.png");
+
+		//		int indexX = i % 16;
+		//		int indexY = i / 16;
+
+		//		g.FillRectangle(Brushes.DeepPink, indexX * 30 + 28, indexY * 30, 2, 30);
+		//		g.FillRectangle(Brushes.DeepPink, indexX * 30, indexY * 30 + 28, 30, 2);
+		//		g.DrawImage(img, indexX * 30, indexY * 30, 28, 28);
+		//	}
+		//}
+
+		//bmp.Save(@"G:\C#\Terraria\Mods\Routed\Textures\Duct\Atlas.png", ImageFormat.Png);
+
+		/* SpriteBatch spriteBatch = Main.spriteBatch;
 			Color color = Color.White;
 
 			RenderTarget2D target = new RenderTarget2D(Main.graphics.GraphicsDevice, 28, 28, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
@@ -407,226 +627,6 @@ namespace Routed.Layer
 					target.SaveAsPng(stream, 28, 28);
 				}
 			}*/
-
-			return Module?.Interact() ?? false;
-		}
-
-		public override void Load(TagCompound tag)
-		{
-			try
-			{
-				Tier = (DuctTier)tag.GetInt("Tier");
-				switch (Tier)
-				{
-					case DuctTier.Basic:
-						Speed = 20;
-						break;
-					case DuctTier.Advanced:
-						Speed = 12;
-						break;
-					case DuctTier.Elite:
-						Speed = 5;
-						break;
-				}
-
-				if (tag.ContainsKey("Module"))
-				{
-					TagCompound module = tag.GetCompound("Module");
-					Module = (BaseModule)Activator.CreateInstance(Type.GetType(module.GetString("Type")));
-					Module.Parent = this;
-					Module.Load(module.GetCompound("Data"));
-				}
-			}
-			catch
-			{
-			}
-		}
-
-		public override void OnPlace(BaseLayerItem item)
-		{
-			if (item is BaseDuct d)
-			{
-				Tier = d.Tier;
-				switch (Tier)
-				{
-					case DuctTier.Basic:
-						Speed = 20;
-						break;
-					case DuctTier.Advanced:
-						Speed = 12;
-						break;
-					case DuctTier.Elite:
-						Speed = 5;
-						break;
-				}
-			}
-
-			List<RoutedNetwork> networks = GetNeighbors().Select(duct => duct.Network).Distinct().ToList();
-			RoutedNetwork network = new RoutedNetwork
-			{
-				Tiles = networks.SelectMany(routedNetwork => routedNetwork.Tiles).Concat(this).ToList(),
-				NetworkItems = networks.SelectMany(routedNetwork => routedNetwork.NetworkItems).ToList()
-			};
-
-			foreach (Duct duct in network.Tiles)
-			{
-				RoutedNetwork.Networks.Remove(duct.Network);
-				duct.Network = network;
-			}
-
-			foreach (Duct duct in network.Tiles)
-			{
-				if ((duct.frame & 1) != 0 && (duct.frame & 16) != 0 && (duct.frame & 4) == 0 && (duct.frame & 64) == 0) duct.isNode = false;
-				else if ((duct.frame & 1) == 0 && (duct.frame & 16) == 0 && (duct.frame & 4) != 0 && (duct.frame & 64) != 0) duct.isNode = false;
-				else duct.isNode = true;
-			}
-		}
-
-		private bool isNode;
-
-		public override void OnRemove()
-		{
-			if (Network.Tiles.Count == 1) RoutedNetwork.Networks.Remove(Network);
-			else if (GetNeighbors().Count() == 1)
-			{
-				Network.Tiles.Remove(this);
-
-				foreach (Duct duct in Network.Tiles)
-				{
-					if ((duct.frame & 1) != 0 && (duct.frame & 16) != 0 && (duct.frame & 4) == 0 && (duct.frame & 64) == 0) duct.isNode = false;
-					else if ((duct.frame & 1) == 0 && (duct.frame & 16) == 0 && (duct.frame & 4) != 0 && (duct.frame & 64) != 0) duct.isNode = false;
-					else duct.isNode = true;
-				}
-			}
-			else
-			{
-				List<Point16> visited = new List<Point16>();
-				List<List<Point16>> newNetworks = new List<List<Point16>>();
-
-				foreach (Duct duct in GetNeighbors())
-				{
-					if (visited.Contains(duct.Position)) continue;
-
-					visited.Add(duct.Position);
-
-					List<Point16> p = new List<Point16> { Position, duct.Position };
-					GetNeighborsRecursive(duct, p);
-					visited.AddRange(p);
-
-					p.Remove(Position);
-					newNetworks.Add(p);
-				}
-
-				if (newNetworks.Count <= 1)
-				{
-					Network.Tiles.Remove(this);
-					Network.CheckPaths();
-				}
-				else
-				{
-					for (int i = 0; i < newNetworks.Count; i++)
-					{
-						RoutedNetwork network = new RoutedNetwork
-						{
-							Tiles = newNetworks[i].Select(position => Layer[position]).ToList(),
-							NetworkItems = newNetworks[i].Select(position => Layer[position].Network).Distinct().SelectMany(routedNetwork => routedNetwork.NetworkItems).ToList()
-						};
-						network.CheckPaths();
-						foreach (Duct duct in network.Tiles)
-						{
-							duct.Network.NetworkItems.Clear();
-							RoutedNetwork.Networks.Remove(duct.Network);
-							duct.Network = network;
-
-							if ((duct.frame & 1) != 0 && (duct.frame & 16) != 0 && (duct.frame & 4) == 0 && (duct.frame & 64) == 0) duct.isNode = false;
-							else if ((duct.frame & 1) == 0 && (duct.frame & 16) == 0 && (duct.frame & 4) != 0 && (duct.frame & 64) != 0) duct.isNode = false;
-							else duct.isNode = true;
-						}
-					}
-				}
-			}
-		}
-
-		public override TagCompound Save()
-		{
-			TagCompound tag = new TagCompound { ["Tier"] = (int)Tier };
-			if (Module != null)
-			{
-				tag["Module"] = new TagCompound
-				{
-					["Type"] = Module.GetType().AssemblyQualifiedName,
-					["Data"] = Module.Save()
-				};
-			}
-
-			return tag;
-		}
-
-		public override void Update()
-		{
-			Module?.InternalUpdate();
-		}
-
-		public override void UpdateFrame()
-		{
-			frame = 0;
-
-			if (Layer.ContainsKey(Position.X - 1, Position.Y)) frame |= 1;
-			if (Layer.ContainsKey(Position.X - 1, Position.Y - 1)) frame |= 2;
-			if (Layer.ContainsKey(Position.X, Position.Y - 1)) frame |= 4;
-			if (Layer.ContainsKey(Position.X + 1, Position.Y - 1)) frame |= 8;
-			if (Layer.ContainsKey(Position.X + 1, Position.Y)) frame |= 16;
-			if (Layer.ContainsKey(Position.X + 1, Position.Y + 1)) frame |= 32;
-			if (Layer.ContainsKey(Position.X, Position.Y + 1)) frame |= 64;
-			if (Layer.ContainsKey(Position.X - 1, Position.Y + 1)) frame |= 128;
-		}
-
-		#region Static
-		//private static Vector2 Origin = new Vector2(14);
-
-		//private static Texture2D textureNormal;
-		//private static Texture2D textureDiagonal;
-		//private static Texture2D textureAll;
-		//private static Texture2D textureIntersection;
-		//private static Texture2D textureStraightV;
-		//private static Texture2D textureStraightH;
-
-		//private const string TextureLocation = "Routed/Textures/Duct/";
-
-		private static Texture2D texture;
-
-		internal static void Initialize()
-		{
-			texture = ModContent.GetTexture("Routed/Textures/Duct/Atlas");
-
-			//Bitmap bmp = new Bitmap(30 * 16, 30 * 16);
-
-			//using (Graphics g = Graphics.FromImage(bmp))
-			//{
-			//	g.Clear(System.Drawing.Color.Transparent);
-
-			//	for (int i = 0; i < 256; i++)
-			//	{
-			//		Image img = Image.FromFile($@"G:\C#\Terraria\Mods\Routed\Textures\Duct_Gen\Frame_{i}.png");
-
-			//		int indexX = i % 16;
-			//		int indexY = i / 16;
-
-			//		g.FillRectangle(Brushes.DeepPink, indexX * 30 + 28, indexY * 30, 2, 30);
-			//		g.FillRectangle(Brushes.DeepPink, indexX * 30, indexY * 30 + 28, 30, 2);
-			//		g.DrawImage(img, indexX * 30, indexY * 30, 28, 28);
-			//	}
-			//}
-
-			//bmp.Save(@"G:\C#\Terraria\Mods\Routed\Textures\Duct\Atlas.png", ImageFormat.Png);
-
-			//textureNormal = ModContent.GetTexture(TextureLocation + "Normal");
-			//textureDiagonal = ModContent.GetTexture(TextureLocation + "Diagonal");
-			//textureAll = ModContent.GetTexture(TextureLocation + "All");
-			//textureIntersection = ModContent.GetTexture(TextureLocation + "Intersection");
-			//textureStraightV = ModContent.GetTexture(TextureLocation + "StraightV");
-			//textureStraightH = ModContent.GetTexture(TextureLocation + "StraightH");
-		}
 		#endregion
 	}
 }

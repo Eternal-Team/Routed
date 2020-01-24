@@ -17,7 +17,9 @@ namespace Routed.Layer
 		public override void Draw(SpriteBatch spriteBatch)
 		{
 			SpriteBatchState state = Utility.End(spriteBatch);
-			Main.spriteBatch.Begin(SpriteSortMode.Texture, BlendState.AlphaBlend);
+			Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
+
+			data = data.OrderBy(x => x.Value.Tier).ToDictionary(x=>x.Key, x=>x.Value);
 
 			base.Draw(spriteBatch);
 
