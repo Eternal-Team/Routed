@@ -101,6 +101,8 @@ namespace Routed.Items
 			Handler.Load(tag.GetCompound("Items"));
 			ReturnHandler.Load(tag.GetCompound("ReturnItems"));
 			Point16 pos = tag.Get<Point16>("Module");
+
+			// bug: runs before the world is loaded
 			if (pos != Point16.NegativeOne && Routed.RoutedLayer.TryGetValue(pos, out Duct duct) && duct.Module is Modules.RemoteRequestModule module)
 			{
 				Module = module;

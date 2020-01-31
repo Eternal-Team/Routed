@@ -1,4 +1,5 @@
-﻿using BaseLibrary.UI;
+﻿using BaseLibrary;
+using BaseLibrary.UI;
 using ContainerLibrary;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -12,6 +13,7 @@ using System.Linq;
 using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
+using Terraria.UI.Gamepad;
 
 namespace Routed
 {
@@ -32,6 +34,79 @@ namespace Routed
 			IL.Terraria.Recipe.Create += Recipe_Create;
 			IL.Terraria.Recipe.FindRecipes += Recipe_FindRecipes;
 			IL.Terraria.Main.DrawInventory += Main_DrawInventory;
+			On.Terraria.IngameOptions.Draw += DrawBG;
+			IL.Terraria.IngameOptions.Draw += DrawButton;
+
+			IL.Terraria.Main.DoDraw += DrawLayer;
+		}
+
+		private static void DrawLayer(ILContext il)
+		{
+			ILCursor cursor = new ILCursor(il);
+
+			if (cursor.TryGotoNext(i => i.MatchCall<Main>("DrawWoF")))
+			{
+				cursor.EmitDelegate<Action>(() =>
+				{
+					Routed.RoutedLayer.FilterVisible();
+					Routed.RoutedLayer.Visible = Routed.RoutedLayer.Visible.OrderBy(pair => pair.Value.Tier).ToDictionary(pair => pair.Key, pair => pair.Value);
+
+					SpriteBatchState state = Utility.End(Main.spriteBatch);
+					Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Utility.DefaultSamplerState, DepthStencilState.Default, RasterizerState.CullCounterClockwise, null, Main.GameViewMatrix.ZoomMatrix);
+
+					if (Mode == ViewMode.PartiallyVisible)
+					{
+						Routed.RoutedLayer.DrawDucts(Main.spriteBatch);
+						Routed.RoutedLayer.DrawItems(Main.spriteBatch);
+					}
+
+					Main.spriteBatch.End();
+					Main.spriteBatch.Begin(state);
+				});
+			}
+		}
+
+		private static Rectangle toggleRectangle = new Rectangle(16, 16, 32, 32);
+
+		public enum ViewMode
+		{
+			AlwaysVisible,
+			PartiallyVisible,
+			Hidden
+		}
+
+		public static ViewMode Mode = ViewMode.AlwaysVisible;
+
+		private static void DrawButton(ILContext il)
+		{
+			ILCursor cursor = new ILCursor(il);
+
+			if (cursor.TryGotoNext(MoveType.AfterLabel, i => i.MatchLdloc(25), i => i.MatchStsfld(typeof(UILinkPointNavigator.Shortcuts), "INGAMEOPTIONS_BUTTONS_RIGHT")))
+			{
+				cursor.Index += 2;
+
+				cursor.Emit(OpCodes.Ldarg, 1);
+
+				cursor.EmitDelegate<Action<SpriteBatch>>(spriteBatch =>
+				{
+					spriteBatch.Draw(ModContent.GetTexture("Routed/Textures/UI/Mode"), toggleRectangle, new Rectangle(0, 32 * (int)Mode, 32, 32), Color.White);
+
+					if (toggleRectangle.Contains(Main.mouseX, Main.mouseY))
+					{
+						if (Main.mouseLeft && Main.mouseLeftRelease) Mode = Mode.NextEnum();
+
+						Main.blockMouse = true;
+						Main.instance.MouseTextHackZoom("Current view: " + Mode);
+					}
+				});
+			}
+		}
+
+		private static void DrawBG(On.Terraria.IngameOptions.orig_Draw orig, Main mainInstance, SpriteBatch spriteBatch)
+		{
+			spriteBatch.Draw(Main.magicPixel, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.Black * 0.5f);
+
+			orig(mainInstance, spriteBatch);
 		}
 
 		private static void RequestItems(ILCursor cursor)

@@ -105,11 +105,13 @@ namespace Routed.Modules
 				case ModBasedMode _:
 					priority = -600;
 					break;
+				case AmmoMode _:
+					priority = -500;
+					break;
 				case WeaponsMode _:
 				case ToolsMode _:
 				case AccessoriesMode _:
 				case ArmorMode _:
-				case AmmoMode _:
 					priority = -600;
 					break;
 				case InInventoryMode _:

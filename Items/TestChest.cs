@@ -10,6 +10,7 @@ using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
 using Terraria.Enums;
+using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 using Terraria.ObjectData;
@@ -142,6 +143,32 @@ namespace Routed.Items
 				HorizontalAlignment = HorizontalAlignment.Center
 			};
 			Add(textLabel);
+
+			UIButton buttonLootAll = new UIButton(Routed.textureLootAll)
+			{
+				Size = new Vector2(20),
+				HoverText = Language.GetText("LegacyInterface.29")
+			};
+			buttonLootAll.OnClick += args => ItemUtility.LootAll(Container.Handler, Main.LocalPlayer);
+			Add(buttonLootAll);
+
+			UIButton buttonDepositAll = new UIButton(Routed.textureDepositAll)
+			{
+				Size = new Vector2(20),
+				X = { Pixels = 28 },
+				HoverText = Language.GetText("LegacyInterface.30")
+			};
+			buttonDepositAll.OnClick += args => ItemUtility.DepositAll(Container.Handler, Main.LocalPlayer);
+			Add(buttonDepositAll);
+
+			UIButton buttonQuickStack = new UIButton(Routed.textureQuickStack)
+			{
+				Size = new Vector2(20),
+				X = { Pixels = 56 },
+				HoverText = Language.GetText("LegacyInterface.31")
+			};
+			buttonQuickStack.OnClick += args => ItemUtility.QuickStack(Container.Handler, Main.LocalPlayer);
+			Add(buttonQuickStack);
 
 			UIGrid<UIContainerSlot> gridItems = new UIGrid<UIContainerSlot>(9)
 			{

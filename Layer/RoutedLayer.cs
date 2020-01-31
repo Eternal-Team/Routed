@@ -1,5 +1,4 @@
-﻿using BaseLibrary;
-using LayerLibrary;
+﻿using LayerLibrary;
 using Microsoft.Xna.Framework.Graphics;
 using Routed.Items;
 using System.Collections.Generic;
@@ -14,19 +13,52 @@ namespace Routed.Layer
 	{
 		public override int TileSize => 1;
 
+		public void DrawModules(SpriteBatch spriteBatch)
+		{
+			foreach (var pair in Visible)
+			{
+				pair.Value.PostDraw(spriteBatch);
+			}
+		}
+
+		public void DrawItems(SpriteBatch spriteBatch)
+		{
+			foreach (RoutedNetwork network in RoutedNetwork.Networks) network.Draw(spriteBatch);
+		}
+
+		public void DrawDucts(SpriteBatch spriteBatch)
+		{
+			foreach (var pair in Visible)
+			{
+				pair.Value.Draw(spriteBatch);
+			}
+		}
+
 		public override void Draw(SpriteBatch spriteBatch)
 		{
-			SpriteBatchState state = Utility.End(spriteBatch);
-			Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
+			//SpriteBatchState state = Utility.End(spriteBatch);
+			//Main.spriteBatch.Begin(SpriteSortMode.Texture, BlendState.AlphaBlend);
 
-			data = data.OrderBy(x => x.Value.Tier).ToDictionary(x=>x.Key, x=>x.Value);
+			//switch (Hooking.Mode)
+			//{
+			//	case Hooking.ViewMode.AlwaysVisible:
+			//		break;
+			//	case Hooking.ViewMode.PartiallyVisible:
 
-			base.Draw(spriteBatch);
+			//		break;
+			//	case Hooking.ViewMode.Hidden:
+			//		DrawModules(spriteBatch);
+			//		break;
+			//}
 
-			foreach (RoutedNetwork network in RoutedNetwork.Networks) network.Draw(spriteBatch);
+			//data = data.OrderBy(pair => pair.Value.Tier).ToDictionary(pair => pair.Key, pair => pair.Value);
 
-			Main.spriteBatch.End();
-			Main.spriteBatch.Begin(state);
+			//base.Draw(spriteBatch);
+
+			//foreach (RoutedNetwork network in RoutedNetwork.Networks) network.Draw(spriteBatch);
+
+			//Main.spriteBatch.End();
+			//Main.spriteBatch.Begin(state);
 		}
 
 		public override bool Interact()

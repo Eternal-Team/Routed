@@ -1,6 +1,7 @@
 using BaseLibrary;
 using BaseLibrary.Input;
 using BaseLibrary.Input.Mouse;
+using Microsoft.Xna.Framework.Graphics;
 using Routed.Layer;
 using Routed.Modules.FilterModes;
 using System;
@@ -47,6 +48,10 @@ namespace Routed
 			}
 		}
 
+		internal static Texture2D textureLootAll;
+		internal static Texture2D textureDepositAll;
+		internal static Texture2D textureQuickStack;
+
 		public override void Load()
 		{
 			RoutedLayer = new RoutedLayer();
@@ -54,6 +59,13 @@ namespace Routed
 
 			Duct.Initialize();
 			Hooking.Initialize();
+
+			if (!Main.dedServ)
+			{
+				textureLootAll = ModContent.GetTexture("BaseLibrary/Textures/UI/LootAll");
+				textureDepositAll = ModContent.GetTexture("BaseLibrary/Textures/UI/DepositAll");
+				textureQuickStack = ModContent.GetTexture("BaseLibrary/Textures/UI/QuickStack");
+			}
 
 			EmitDynamicItems();
 		}
